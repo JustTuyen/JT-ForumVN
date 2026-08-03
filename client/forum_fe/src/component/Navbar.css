@@ -1,0 +1,39 @@
+.nav-items{
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 16px;
+    padding: 5px 20px;
+    transition: background-color 1s;
+}
+
+.nav-items:hover{
+    background-color: white;
+    color: #9400D3;
+    border-radius: 16px;
+}
+
+@media (max-width: 1024px) {
+    .nav-items{
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 16px;
+        padding: 5px 10px;
+        font-size: 13px;
+        transition: background-color 1s;
+    }
+}
+
+@media (max-width: 740px) {
+    .nav-items{
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 16px;
+        padding: 5px 10px;
+        font-size: 16px;
+        transition: background-color 1s;
+    }
+}
