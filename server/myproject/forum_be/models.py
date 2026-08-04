@@ -7,6 +7,9 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 # Create your models here.
 
+# thread has indexing for view and like is not very otpmized, considering view and like are constantly changing.
+
+
 #1 status
 class Status(models.Model):
     status_type = models.CharField(max_length=100, blank=False)
@@ -15,10 +18,13 @@ class Status(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        indexes = [
-            models.Index(fields=['status_type', 'status_name', '-created_at'], name='idx_type_name_created'),
+        constraints = [
+            models.UniqueConstraint(
+                fields=['status_type', 'status_name',],
+                name='unique_status_type_name'
+            )
         ]
-        ordering = ['-created_at']
+        ordering = ['status_type', 'status_name']
 
     def __str__(self):
         return f"{self.status_type}: {self.status_name}"
@@ -53,7 +59,7 @@ class User(AbstractUser):
 
     class Meta:
         indexes = [
-            models.Index(fields=['role','created_at'], 
+            models.Index(fields=['role', '-created_at'], 
                          name='idx_user_role_created'),
         ] 
 
@@ -73,7 +79,7 @@ class Plan(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     reply_limit = models.PositiveIntegerField()
-
+    thread_duration = models.DurationField()
     status = models.ForeignKey(
         Status, 
         on_delete=models.PROTECT, 
@@ -81,11 +87,18 @@ class Plan(models.Model):
         null=True, 
         blank=True)
     class Meta:
-            indexes = [
-                models.Index(fields=['rank','created_at'], 
-                            name='idx_plan_rank_created'),
-            ]   
-            ordering = ['rank']
+        indexes = [
+            models.Index(fields=['status', '-created_at'], name='idx_plan_status_created'),
+        ]
+        ordering = ['rank']
+
+    #checking the duration of subscription
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            duration = self.plan.duration if self.plan else timedelta(days=30)
+            self.expire_at = timezone.now() + duration
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.title} ({self.duration}) ({self.reply_limit})"
 
@@ -125,7 +138,7 @@ class Subscription(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['user','plan','created_at'], 
+            models.Index(fields=['user','plan','-created_at'], 
                         name='idx_subscription_user_plan_created'),
         ] 
         ordering = ['-created_at']
@@ -148,7 +161,7 @@ class Category(models.Model):
         blank=True)
     class Meta:
         indexes = [
-            models.Index(fields=['title','created_at'],
+            models.Index(fields=['title','-created_at'],
                          name='idx_category_title_create'),
         ]
         ordering = ['-created_at']
@@ -166,9 +179,11 @@ class Thread(models.Model):
     view_count = models.PositiveIntegerField(default=0)
     like_count = models.PositiveIntegerField(default=0)
     point_reward = models.IntegerField(default=10)
-    duration = models.DurationField(default=timedelta(hours=24))
+    #duration = models.DurationField(default=timedelta(hours=24))
+    expire_at = models.DateTimeField(editable=False)
 
-    reply_limit = models.PositiveIntegerField() 
+
+    reply_limit = models.PositiveIntegerField(default=0) 
 
     category = models.ForeignKey(
         Category, 
@@ -191,34 +206,39 @@ class Thread(models.Model):
         null=True, 
         blank=True)
     class Meta:
-            indexes = [
-                models.Index(fields=['user','category','created_at'],
-                             name='idx_thread_user_category_create'),
-            ]
-            ordering = ['-created_at']
+        indexes = [
+            models.Index(
+            fields=['status', 'category', '-created_at'],
+                    name='idx_thread_status_cat_created'),
+            # models.Index(
+            #     fields=['status', 'category', '-view_count'],
+            #     name='idx_thread_status_cat_views',),
+        ]
 
+        ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        if self._state.adding and not self.reply_limit:
+        if self._state.adding:
             subscription = (
                 self.user.subscriptions
-                .filter(status__status_name='active', expire_at__gt=timezone.now())
-                .select_related('plan')
-                .order_by('-created_at')
+                .filter(
+                    status__status_name="active",
+                    expire_at__gt=timezone.now(),
+                )
+                .select_related("plan")
+                .order_by("-created_at")
                 .first()
             )
-            self.reply_limit = subscription.plan.reply_limit if subscription and subscription.plan else 200
+
+            if subscription and subscription.plan:
+                self.expire_at = timezone.now() + subscription.plan.thread_duration
+                self.reply_limit = subscription.plan.reply_limit
+            else:
+                self.expire_at = timezone.now() + timedelta(hours=24)
+                self.reply_limit = 200
         super().save(*args, **kwargs)
 
-    @property
-    def reply_count(self):
-        return self.replies.count()
-
-    @property
-    def is_reply_limit_reached(self):
-        return self.reply_count >= self.reply_limit
-    
-    def __str__(self):       
+    def __str__(self):
         return self.title
 
 #5 reply
@@ -263,7 +283,7 @@ class Reply(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['user','thread','created_at'],
+            models.Index(fields=['user','thread','-created_at'],
                             name='idx_user_thread_create'),
         ]
         ordering = ['-created_at']
@@ -292,11 +312,17 @@ class Bookmark(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        indexes = [
-            models.Index(fields=['user','thread','created_at'],
-                            name='idx_bookmark_user_thread_create'),
+       constraints = [
+            models.UniqueConstraint(
+                fields=["user", "thread"],
+                name="unique_user_thread_bookmark",
+            )
         ]
-        ordering = ['-created_at']
+       indexes = [
+            models.Index(fields=['user','thread','-created_at'],
+                            name='idx_bookmark_user_thread_create'),
+        ],
+       ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.user} bookmarked {self.thread}"
@@ -328,7 +354,7 @@ class Image(models.Model):
     class Meta:
         ordering = ['display_order']
         constraints = [
-            # ensures only ONE image per thread can be the thumbnail
+            # only one image can be the thumbnail
             models.UniqueConstraint(
                 fields=['thread'],
                 condition=models.Q(is_thumbnail=True),
@@ -368,10 +394,43 @@ class Report(models.Model):
         blank=False)
     class Meta:
         indexes = [
-            models.Index(fields=['user','content_type', 'object_id','created_at'],
-                            name='idx_report_user_type_object_create'),
+            models.Index(fields=['user','status','-created_at'],
+                            name='idx_report_user_status_create'),
+            models.Index(fields=['content_type', 'object_id','-created_at'],
+                        name='idx_report_user_type_object_create')
         ]
         ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.user} report {self.target}"
+
+#9 user log
+class Activity_Log(models.Model):
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    action = models.CharField(max_length=50, blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE, 
+        related_name='activity_logs', 
+        null=True, 
+        blank=True)
+
+    #target id: thread, reply or user
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    target = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', '-created_at'], 
+                         name='idx_logs_user_create'),
+            models.Index(fields=['content_type', 'object_id', '-created_at'], 
+                         name='idx_logs_target_create'),
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user} - {self.action}"
+
