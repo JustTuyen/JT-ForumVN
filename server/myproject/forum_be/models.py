@@ -92,16 +92,9 @@ class Plan(models.Model):
         ]
         ordering = ['rank']
 
-    #checking the duration of subscription
-    def save(self, *args, **kwargs):
-        if self._state.adding:
-            duration = self.plan.duration if self.plan else timedelta(days=30)
-            self.expire_at = timezone.now() + duration
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.title} ({self.duration}) ({self.reply_limit})"
-
+    
 #4 subscription
 class Subscription(models.Model):
     auto_renew = models.BooleanField(default=False)
@@ -170,6 +163,7 @@ class Category(models.Model):
         return self.title
 
 #6 Thread
+# thread sorting with view count and like count is not very otpzimed, view and like changed to often can discrute the indexing, not recomemend
 class Thread(models.Model):
     name = models.CharField(max_length=225, blank=False)
     title = models.CharField(max_length=500, blank=False)
@@ -209,7 +203,14 @@ class Thread(models.Model):
         indexes = [
             models.Index(fields=['status', 'category', '-created_at'], name='idx_thread_status_cat_created'),
             models.Index(fields=['status', 'category', '-updated_at'], name='idx_thread_status_cat_updated'),
-            models.Index(fields=['status', 'category', '-view_count'], name='idx_thread_status_cat_views'),
+            models.Index(fields=['status', 'category', '-view_count'], name='idx_thread_status_cat_views', condition=Q(view_count__gte=100)),
+            models.Index(fields=['status', 'category', '-like_count'], name='idx_thread_status_cat_likes', condition=Q(like_count__gte=100)),
+
+            # category-scoped, no status filter
+            models.Index(fields=['category', '-updated_at'], name='idx_thread_cat_updated'),
+            models.Index(fields=['category', '-created_at'], name='idx_thread_cat_created'),
+            models.Index(fields=['category', '-view_count'], name='idx_thread_cat_views', condition=Q(view_count__gte=100)),
+            models.Index(fields=['category', '-like_count'], name='idx_thread_cat_likes', condition=Q(like_count__gte=100)),
         ]
         ordering = ['-created_at']
 
