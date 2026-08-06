@@ -321,7 +321,7 @@ class Bookmark(models.Model):
        indexes = [
             models.Index(fields=['user','thread','-created_at'],
                             name='idx_bookmark_user_thread_create'),
-        ],
+        ]
        ordering = ['-created_at']
 
     def __str__(self):
