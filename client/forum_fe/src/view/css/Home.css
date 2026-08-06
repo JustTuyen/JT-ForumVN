@@ -1,0 +1,235 @@
+    /* @import '../../assets/banner.jpg' */
+
+    /* BANNER SECTION 1 */
+    .banner{
+        background-image: url("../../assets/banner.jpg");
+        height: 70vh;
+        width: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        color: #9400D3;
+    }
+
+    #heading{
+        font-size: 32px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    #heading-description{
+        font-size: 24px;
+        text-align: center;
+        font-weight: medium;
+        
+    }
+
+    #heading-btn{
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 16px;
+            padding: 5px 10px;
+            color: white;
+            background-color: #9400D3;
+            transition: background-color 0.6s;
+        }
+
+    #heading-btn:hover{
+        background-color: #DE80E9;
+    }
+
+
+    @media (max-width: 1024px) {
+
+        .banner{
+            background-image: url("../../assets/banner.jpg");
+            height: 50vh;
+            width: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #heading{
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #heading-description{
+            font-size: 16px;
+            text-align: center;
+            font-weight: medium;
+        }
+
+        #heading-btn{
+            font-weight: bold;
+            font-size: 13px;
+            border-radius: 16px;
+            padding: 5px 10px;
+            color: white;
+            background-color: #9400D3;
+            transition: background-color 0.6s;
+        }
+
+        #heading-btn:hover{
+            background-color: #DE80E9;
+        }
+
+    }
+
+    @media (max-width: 740px) {
+
+        .banner{
+            background-image: url("../../assets/banner.jpg");
+            height: 50vh;
+            width: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #heading{
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #heading-description{
+            font-size: 13px;
+            text-align: center;
+            font-weight: medium;
+        }
+
+        #heading-btn{
+            font-weight: bold;
+            font-size: 11px;
+            border-radius: 16px;
+            padding: 5px 10px;
+            color: white;
+            background-color: #9400D3;
+            transition: background-color 0.6s;
+        }
+
+        #heading-btn:hover{
+            background-color: #DE80E9;
+        }
+
+    }
+
+/* RANKING USER SECTION 2 */
+.content{
+    width: 80%;
+}
+
+@media screen and (max-width: 740px){
+    .content{
+        width: 80%;
+    }
+}
+
+@media (max-width: 740px){
+    .content{
+        width: 90%;
+    }
+}
+
+#head-icon, #header-text{
+    color: #9400D3;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+
+.card-title p{
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Change '2' to the number of lines you want before '...' */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    
+    /* Ensures words break properly if a single word is too long */
+    word-break: break-word;
+}
+
+.card-title{
+    height: 80%;
+}
+
+
+.info-archive{
+    background-color: #BFC9D1;
+}
+
+.info-reply{
+    background-color: #DE80E9;
+}
+
+.card-info{
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.card{
+    font-size: 16px;
+}
+.post-thread{
+    cursor: pointer;
+}
+
+.post-field, .text-reward{
+    font-size: 16px;
+}
+
+#post-btn{
+    background-color: #9400D3;
+    color: white;
+    width:40%;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+#future-btn-1{
+    background-color: #9400D3;
+}
+
+#future-btn-2{
+    background-color: #DE80E9;
+}
+
+@media (max-width: 1024px){
+    .card-info{
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    .card{
+        font-size: 14px;
+    }
+
+    .post-field, .text-reward{
+        font-size: 13px;
+    }
+
+    #post-btn{
+        background-color: #9400D3;
+        color: white;
+        width:50%;
+        padding: 5px 10px;
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+}
