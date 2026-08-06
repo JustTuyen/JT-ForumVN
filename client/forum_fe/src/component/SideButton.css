@@ -1,0 +1,59 @@
+#side-btn-1{
+    height: 50px;
+    width: 50px;
+    color: white;
+    background-color: #9400D3;
+}
+
+#side-btn-2{
+    height: 50px;
+    width: 50px;
+    color: white;
+    background-color: #DE80E9;
+}
+
+#side-btn-3{
+    height: 50px;
+    width: 50px;
+    color: white;
+    background-color: #D8BFD8;
+}
+
+#side-btn-4{
+    height: 50px;
+    width: 50px;
+    color: #9400D3;
+    background-color: white;
+}
+
+
+@media screen and (max-width: 810px) {
+    #side-btn-1{
+        height: 35px;
+        width: 35px;
+        color: white;
+        background-color: #9400D3;
+    }
+
+    #side-btn-2{
+        height: 35px;
+        width: 35px;
+        color: white;
+        background-color: #DE80E9;
+    }
+
+    #side-btn-3{
+        height: 35px;
+        width: 35px;
+        color: white;
+        background-color: #D8BFD8;
+    }
+
+    #side-btn-4{
+       height: 35px;
+        width: 35px;
+        color: #9400D3;
+        background-color: white;
+    }
+
+}

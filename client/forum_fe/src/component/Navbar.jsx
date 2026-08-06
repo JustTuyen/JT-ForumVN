@@ -1,17 +1,21 @@
-// import React from "react";
 import icon from '../assets/icon.png'
 import '../component/Navbar.css'
-// import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Link } from 'react-router';
 function Navbar(){
     return(
        <>
         {/* <CssBaseline/> */}
         <nav className="bg-[#9400D3] p-2 text-[16px]">
             <div className="flex justify-between">
-                <img src={icon} alt="web icon" id="web-icon"/>
+                <Link to="/">
+                    <img src={icon} alt="web icon" id="web-icon"/>
+                </Link>
                 <div className="flex gap-4 items-center w-[50%] justify-end">
-                    <span className="text-white welcome-text text-shadow-lg"
-                    >Welcome back, dear!</span>
+                    <Link to="/login">
+                        <span className="text-white welcome-text text-shadow-lg">
+                            Welcome back, dear!
+                        </span>
+                    </Link>
                     <div className="flex">
                         <input type="text"
                         placeholder="search..." className="search-input rounded-l-lg"/>
@@ -23,16 +27,16 @@ function Navbar(){
             </div>
             <div className="justify-evenly flex p-1">
                 <div className="nav-items">
-                    <p>Terms of service</p>
+                    <Link to="/about">About us</Link>
                 </div>
                 <div className="nav-items">
-                    <p>Inquiry</p>
+                    <Link to="/inquiry">Inquiry</Link>
                 </div>
                 <div className="nav-items">
-                    <p>About us</p>
+                    <Link to="/services">Terms of service</Link>
                 </div>
                 <div className="nav-items">
-                    <p>Category</p>
+                    <Link to="/menu">Category</Link>
                 </div>
             </div>
         </nav>

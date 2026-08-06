@@ -1,0 +1,48 @@
+#side-banner{
+    /* height: 65vh;
+    width: 50vh; */
+    object-fit: cover;
+    object-position: center;
+}
+
+#side-form{
+    width: 50vh;
+}
+
+.form-title{
+    font-size: 32px;
+    color: #9400D3;
+}
+
+#post-btn{
+    background-color: #9400D3;
+    color: white;
+    width:100%;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+#form-link{
+    font-size: 16px;
+}
+
+@media (max-width: 810px){
+    #side-banner{
+        /* height: 65vh;
+        width: 50vh; */
+        object-fit: cover;
+        object-position: center;
+        display: none;
+    }
+
+    #side-form{
+        padding: 30px;
+        width: 60vh;
+    }
+
+    .form-title{
+        font-size: 32px;
+        color: #9400D3;
+    }
+}

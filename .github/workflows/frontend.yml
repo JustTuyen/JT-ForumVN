@@ -1,1 +1,31 @@
 name: Frontend CI
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'client/forum_fe/**'
+    pull_request:
+      paths:
+      - 'client/forum_fe/**'
+
+jobs: 
+  build-and-test:
+    run-on: ubuntu-latest
+    defaults:
+      run:
+        working-direction: forum_fe
+      steps:
+        - uses: actions/checkout@4
+        - uses: actions/setup-node@4
+          with:
+            node-version: '20'
+            cache: 'npm'
+            cache-dependency-path: client/forum_fe/package-lock.json
+        - run: npm ci
+        - run: npm run lint
+        - run: npm test -- --watchAll=false
+        - run: npm run build
+        - uses: actions/upload-artifact@v4
+          with:
+            name: frontend-build
+            path: frontend/build

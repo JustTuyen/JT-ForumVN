@@ -77,7 +77,7 @@ function Home(){
                     </div>
                 </div>
                 <section className="flex flex-col py-4 items-center">
-                    {/* forum hot forum */}
+                    {/* forum hot */}
                     <div className="w-[80%] pb-15">
                         <div className="flex gap-2 items-center border-b-2 border-[#9400D3]">
                            <i class="bi bi-bar-chart-fill" id="head-icon"></i>

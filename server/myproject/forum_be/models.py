@@ -207,14 +207,10 @@ class Thread(models.Model):
         blank=True)
     class Meta:
         indexes = [
-            models.Index(
-            fields=['status', 'category', '-created_at'],
-                    name='idx_thread_status_cat_created'),
-            # models.Index(
-            #     fields=['status', 'category', '-view_count'],
-            #     name='idx_thread_status_cat_views',),
+            models.Index(fields=['status', 'category', '-created_at'], name='idx_thread_status_cat_created'),
+            models.Index(fields=['status', 'category', '-updated_at'], name='idx_thread_status_cat_updated'),
+            models.Index(fields=['status', 'category', '-view_count'], name='idx_thread_status_cat_views'),
         ]
-
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):

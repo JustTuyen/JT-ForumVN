@@ -11,11 +11,14 @@ import { createBrowserRouter, RouterProvider } from 'react-router'
 import Menu from './view/user/MenuPage.jsx'
 import NotFound from './view/user/NotFountPage.jsx'
 import Home from './view/user/HomePage.jsx'
-
+import Login from './view/user/LoginPage.jsx';
+import Register from './view/user/RegisterPage.jsx';
 const router = createBrowserRouter([
   {path:'/', element:<Home/>},
   {path:'/menu', element:<Menu/>},
-  {path:'*', element:<NotFound/>}
+  {path:'*', element:<NotFound/>},
+  {path:'/login', element:<Login/>},
+  {path:'/register', element:<Register/>},
 ])
 
 createRoot(document.getElementById('root')).render(
