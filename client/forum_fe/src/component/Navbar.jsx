@@ -1,24 +1,27 @@
-import React from "react";
+// import React from "react";
 import icon from '../assets/icon.png'
 import '../component/Navbar.css'
+// import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 function Navbar(){
     return(
+       <>
+        {/* <CssBaseline/> */}
         <nav className="bg-[#9400D3] p-2 text-[16px]">
             <div className="flex justify-between">
-                <img src={icon} alt="web icon" />
-                <div className="flex gap-2 items-center">
-                    <span className="text-white"
+                <img src={icon} alt="web icon" id="web-icon"/>
+                <div className="flex gap-4 items-center w-[50%] justify-end">
+                    <span className="text-white welcome-text text-shadow-lg"
                     >Welcome back, dear!</span>
                     <div className="flex">
-                        <input type="text" className="bg-white rounded-md p-2"
-                        placeholder="search..." name="" id="" />
-                        <button className="p-2 px-3 border border-white rounded-md" >
-                            <i className="bi bi-search text-white"></i>
+                        <input type="text"
+                        placeholder="search..." className="search-input rounded-l-lg"/>
+                        <button className="search-btn rounded-r-lg">
+                            <i className="bi bi-search"></i>
                         </button>
                     </div>
                 </div>
             </div>
-            <div className="justify-evenly flex p-2">
+            <div className="justify-evenly flex p-1">
                 <div className="nav-items">
                     <p>Terms of service</p>
                 </div>
@@ -33,6 +36,7 @@ function Navbar(){
                 </div>
             </div>
         </nav>
+    </>
     )
 }
 

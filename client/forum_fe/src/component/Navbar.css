@@ -1,6 +1,47 @@
+/* icon */
+#web-icon{
+    width: 6rem;
+    height: 4rem;
+}
+
+/* welcome text and input field */
+.welcome-text{
+    font-size: 14px;
+    text-decoration: underline;
+    font-weight: light;
+}
+
+.search-input{
+    background-color: white;
+    /* border-radius: 16px; */
+    width: 15rem; 
+    font-size: 18px;
+    color: #9400D3;
+    font-weight: bold;
+    padding: 5px 10px; 
+    cursor: pointer;
+}
+
+.search-btn{
+    border: white 1px solid;
+    padding: 5px 15px;
+    cursor: pointer;
+    color: white;
+    transition-duration: 0.4s;
+    /* border-radius: 16px; */
+}
+
+.search-btn:hover{
+    background-color: white;
+    color: #9400D3;
+    border: #9400D3 1px solid;
+}
+
+/* navbar router items */
+
 .nav-items{
     color: white;
-    font-weight: bold;
+    font-weight: medium;
     font-size: 16px;
     cursor: pointer;
     border-radius: 16px;
@@ -14,26 +55,112 @@
     border-radius: 16px;
 }
 
-@media (max-width: 1024px) {
+
+@media screen and (max-width: 1024px) {
+    #web-icon{
+        width: 6rem;
+        height: 4rem;
+    }
+
+
+    .welcome-text{
+        font-size: 13px;
+        text-decoration: underline;
+        font-weight: light;
+    }
+
+    .search-input{
+        background-color: white;
+        /* border-radius: 16px; */
+        width: 13rem; 
+        font-size: 14px;
+        color: #9400D3;
+        font-weight: bold;
+        padding: 5px 10px; 
+        cursor: pointer;
+    }
+
+    .search-btn{
+        border: white 1px solid;
+        padding: 5px 15px;
+        cursor: pointer;
+        transition-duration: 0.4s;
+        /* border-radius: 16px; */
+        color: white;
+
+    }
+
+    .search-btn:hover{
+        background-color: white;
+        color: #9400D3;
+        border: #9400D3 1px solid;
+    }
+
+
     .nav-items{
         color: white;
-        font-weight: bold;
+        font-weight: medium;
+        font-size: 16px;
         cursor: pointer;
         border-radius: 16px;
         padding: 5px 10px;
-        font-size: 13px;
         transition: background-color 1s;
     }
 }
 
-@media (max-width: 740px) {
+@media screen and (max-width: 768px) {
+    /* icon */
+    #web-icon{
+        width: 6rem;
+        height: 4rem;
+    }
+/* welcome text and input field */
+    .welcome-text{
+        display: none;
+    }
+
+    .search-input{
+        background-color: white;
+        /* border-radius: 16px; */
+        width: 15rem; 
+        font-size: 16px;
+        color: #9400D3;
+        font-weight: bold;
+        padding: 5px 10px; 
+        cursor: pointer;
+    }
+
+    .search-btn{
+        border: white 1px solid;
+        padding: 5px 15px;
+        cursor: pointer;
+        color: white;
+        transition-duration: 0.4s;
+        /* border-radius: 16px; */
+    }
+
+    .search-btn:hover{
+        background-color: white;
+        color: #9400D3;
+        border: #9400D3 1px solid;
+    }
+
+    /* navbar router items */
+
     .nav-items{
         color: white;
-        font-weight: bold;
+        font-weight: medium;
+        font-size: 14px;
         cursor: pointer;
         border-radius: 16px;
-        padding: 5px 10px;
-        font-size: 16px;
+        padding: 5px 20px;
         transition: background-color 1s;
     }
+
+    .nav-items:hover{
+        background-color: white;
+        color: #9400D3;
+        border-radius: 16px;
+    }
+
 }
