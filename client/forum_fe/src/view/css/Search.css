@@ -1,0 +1,165 @@
+
+.navigator-indicator{
+    font-size: 18px;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+#navigator-btn {
+    background-color: #9400D3;
+    padding: 5px 20px;
+    border-radius: 16px;
+    font-weight: bold;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 50ch; /* Limits width to ~50 characters */
+}
+
+.card-title p{
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Change '2' to the number of lines you want before '...' */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    
+    /* Ensures words break properly if a single word is too long */
+    word-break: break-word;
+}
+
+.card-title{
+    height: 70%;
+}
+
+
+.info-archive{
+    background-color: #BFC9D1;
+}
+
+.info-reply{
+    background-color: #DE80E9;
+}
+
+.card-info{
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.card{
+    font-size: 16px;
+}
+
+.post-field, .text-reward{
+    font-size: 13px;
+}
+
+#post-btn{
+    background-color: #9400D3;
+    color: white;
+    width:50%;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.search-box{
+    background-color: #D8BFD8;
+    border: #9400D3 1px solid;
+    border-radius: 8px;
+    color: #9400D3;
+    font-size: 16px;
+}
+
+@media(max-width: 1024px){
+    .card-info{
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    .card{
+        font-size: 14px;
+    }
+
+    .post-field, .text-reward{
+        font-size: 13px;
+    }
+
+    #post-btn{
+        background-color: #9400D3;
+        color: white;
+        width:50%;
+        padding: 5px 10px;
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .search-box{
+        background-color: #D8BFD8;
+        border: #9400D3 1px solid;
+        border-radius: 8px;
+        color: #9400D3;
+        font-size: 16px;
+    }
+
+    .card-info{
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 740px){
+    
+    .navigator-indicator{
+        font-size: 13px;
+        color: white;
+        display: flex;
+        align-items: center;
+    }
+
+    #navigator-btn{
+        background-color: #9400D3;
+        padding: 5px 20px;
+        border-radius: 16px;
+        font-weight: bold;
+    }
+    .search-box{
+        background-color: #D8BFD8;
+        border: #9400D3 1px solid;
+        border-radius: 8px;
+        color: #9400D3;
+        font-size: 13px;
+    }
+
+    .card-title{
+        height: 80%;
+    }
+
+    .card-info{
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+    
+}

@@ -1,0 +1,254 @@
+.side-menu{
+    color: #9400D3;
+    font-size: 20px;
+    display: flex;
+    cursor: pointer;
+}
+
+/* #logout-btn{
+    background-color: #9400D3;
+    color: white;
+    width: 100%;
+    text-transform: none;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 16px;
+} */
+
+.side-section{
+    border-left: #9400D3 2px solid;
+    padding: 0 10px;
+    
+}
+#nav-items{
+    background-color: white;
+    color: #9400D3;
+    border: #9400D3 1px solid;
+    border-radius: 24px;
+    text-transform: none;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background 0.5s;
+}
+
+#nav-items:hover{
+    background-color: #9400D3;
+    color: white;
+}
+
+
+#nav-post{
+    background-color: #DE80E9;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    text-transform: none;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+@media (max-width: 1024px){
+    #nav-items, #nav-post{
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 810px){
+    #nav-items, #nav-post{
+        font-size: 13px;
+    }
+}
+
+/* PROFLE OVERVIEW */
+
+.changed-info{
+    font-size: 16px;
+}
+
+.badge-tab{
+    background-color: #9400D3;
+    color: white;
+    font-size: 18px;
+    padding: 5px;
+    border-radius: 16pc;
+    cursor: progress;
+
+}
+
+#profile-btn-1{
+    background-color: #DE80E9;
+    color: white;
+    border: none;
+    font-weight: light;
+    border-radius: 24px;
+    text-transform: none;
+    padding: 5px 20px;
+    font-size: 16px;
+}
+
+#profile-btn-2{
+    background-color: #D8BFD8;
+    color: white;
+    border: none;
+    font-weight: light;
+    border-radius: 24px;
+    text-transform: none;
+    padding: 5px 20px;
+    font-size: 16px;
+}
+
+@media (max-width: 1024px){
+    .changed-info p{
+        font-size: 14px;
+    }
+
+    
+    #profile-btn-1{
+        font-size: 14px;
+    }
+    #profile-btn-2{
+        font-size: 14px;
+    }
+}
+
+/* THREAD SECTION*/
+.sorting{
+    color: #9400D3;
+    font-size: 16px;
+    padding: 5px;
+    align-items: center;
+}
+
+.sorting select{
+    background-color: white;
+    padding: 5px 10px;
+    border-radius: 16px;
+    border: #9400D3 1px solid;
+}
+
+.card{
+    background-color: white;
+    padding: 10px;
+    border-radius: 16px;
+}
+
+#thread-thumbnail{
+    height: 10rem;
+    width: 10rem;
+    border: #9400D3 1px solid;
+    border-radius: 16px;
+}
+
+.thread-title{
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+.thread-title p{
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Change '2' to the number of lines you want before '...' */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    
+    /* Ensures words break properly if a single word is too long */
+    word-break: break-word;
+}
+
+
+.date-info{
+    font-size: 16px;
+}
+
+.info-archive{
+    background-color: #BFC9D1;
+}
+
+.info-reply{
+    background-color: #DE80E9;
+}
+
+.card-info{
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+#thread-btn-1{
+    background-color: #9400D3;
+    color: white;
+    border: none;
+    font-weight: light;
+    border-radius: 24px;
+    text-transform: none;
+    padding: 5px 20px;
+    font-size: 16px;
+}
+
+#thread-btn-2{
+    background-color: white;
+    color: rgb(182, 78, 78);
+    border: rgb(182, 78, 78) 1px solid;
+    font-weight: light;
+    border-radius: 24px;
+    text-transform: none;
+    padding: 5px 20px;
+    font-size: 16px;
+}
+
+@media (max-width: 1024px){
+    .sorting{
+        font-size: 14px;
+    }
+    #thread-thumbnail{
+        height: 8rem;
+        width: 8rem;
+    }
+
+    .thread-title p{
+        font-size: 16px;
+        display: -webkit-box;
+        -webkit-line-clamp: 5; /* Change '2' to the number of lines you want before '...' */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        /* Ensures words break properly if a single word is too long */
+        word-break: break-word;
+    }
+    .date-info{
+        font-size: 14px;
+    }
+
+    .card-info{
+        font-size: 13px;
+    }
+
+}
+
+/* POSTING section */
+#head-icon, #header-text{
+    color: #9400D3;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+
+.card-rule{
+    font-size: 16px;
+}
+
+#post-btn{
+    background-color: #9400D3;
+    color: white;
+    width:40%;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 16px;
+}
