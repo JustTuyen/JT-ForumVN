@@ -1,0 +1,122 @@
+.card{
+    background-color: white;
+    border: #9400D3 solid 1px;
+
+}
+
+.thread-title p{
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+
+.thread-title{
+    color: #9400D3;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.thread-info{
+    border-bottom: #9400D3 1px solid;
+    font-size: 14px;
+    font-weight: bold;
+    color: #9400D3;
+}
+
+.index-box{
+    border: #9400D3 1px solid;
+    width: auto;
+    padding: 5px 10px;
+}
+
+#report-btn{
+    background-color: #D8BFD8;
+    color: white;
+    border: none;
+    padding: 5px 20px;
+    border-radius: 16pc;
+    text-transform: none;
+}
+
+.thread-context{
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+.thread-context p{
+    color: black;
+    font-size: 16px;
+    display: -webkit-box;
+    /* -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    
+    /* Ensures words break properly if a single word is too long */
+    word-break: break-word;
+}
+
+#thread-imgs{
+    height: 20rem;
+    width: 20rem;
+    border: #9400D3 1px solid;
+    border-radius: 16px;
+    object-fit: cover;
+    object-position: center;
+}
+
+#post-btn{
+    background-color: #9400D3;
+    color: white;
+    width:70%;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+@media(max-width: 1024px){
+    #thread-imgs{
+        height: 15rem;
+        width: 15rem;
+        border: #9400D3 1px solid;
+        border-radius: 16px;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .thread-title{
+        color: #9400D3;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    #post-btn{
+        background-color: #9400D3;
+        color: white;
+        width:70%;
+        padding: 5px 10px;
+        font-weight: bold;
+        font-size: 16px;
+    }
+}
+
+@media(max-width: 810px){
+    .thread-title{
+        color: #9400D3;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .thread-info{
+        border-bottom: #9400D3 1px solid;
+        font-size: 11px;
+        font-weight: bold;
+        color: #9400D3;
+    }
+    #thread-imgs{
+        height: 12rem;
+        width: 12rem;
+        border: #9400D3 1px solid;
+        border-radius: 16px;
+        object-fit: cover;
+        object-position: center;
+    }
+}

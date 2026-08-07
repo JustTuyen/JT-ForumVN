@@ -14,10 +14,10 @@ import SideButton from "../../component/SideButton";
 function Menu(){
     return(
         <>
-        <SideButton/>
+        <SideButton targetId="reply-box"/>
         <Navbar/>
         <div className="min-h-screen">
-            <section className="flex flex-col py-4 items-center">
+            <section className="flex flex-col items-center">
                 <div className="w-[80%] pb-15">
                     {/* navigator */}
                     <div className="flex py-2 pb-4 gap-4 navigator-indicator">
@@ -43,8 +43,10 @@ function Menu(){
                     </div>
                     {/* sorting navigator */}
                     <div className="flex sorting gap-2 p-2">
-                        <i class="bi bi-sort-down"></i>
-                        <p>Sorting:</p> 
+                        <div className="flex justify-center gap-2">
+                            <i class="bi bi-sort-down"></i>
+                            <p>Sorting:</p> 
+                        </div>
                         {/* sorting buttons */}
                         <div className="grid grid-cols-2 
                         lg:grid-cols-5 gap-2 md:gap-4">
@@ -126,7 +128,7 @@ function Menu(){
                     </div>
 
                     {/* post a thread */}
-                    <div className="">
+                    <div id="reply-box">
                         <div className="flex gap-2 items-center border-b-2 border-[#9400D3]">
                            <i class="bi bi-pencil-square" id="head-icon"></i>
                             <p id='header-text'>WRITE A THREAD</p>

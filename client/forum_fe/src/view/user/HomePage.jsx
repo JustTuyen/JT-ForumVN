@@ -11,10 +11,12 @@ import SendIcon from '@mui/icons-material/Send';
 import KeyboardCapslockIcon from '@mui/icons-material/KeyboardCapslock';
 import ChatIcon from '@mui/icons-material/Chat';
 import Footer from "../../component/Footer";
+import SideButton from "../../component/SideButton";
 function Home(){
     return(
         <>
             <Navbar/>
+            <SideButton targetId="reply-box"/>
             <div className="min-h-screen">
                 <div className="banner flex justify-center items-center">
                     <div className="gap-4 flex flex-col">
@@ -150,7 +152,7 @@ function Home(){
                     </div>
 
                     {/* write a thread */}
-                    <div className="w-[80%] pb-15">
+                    <div className="w-[80%] pb-15" id="reply-box">
                         <div className="flex gap-2 items-center border-b-2 border-[#9400D3]">
                            <i class="bi bi-pencil-square" id="head-icon"></i>
                             <p id='header-text'>WRITE A THREAD</p>
