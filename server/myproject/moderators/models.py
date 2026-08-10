@@ -83,34 +83,3 @@ class Report(models.Model):
 
     def __str__(self):
         return f"{self.user} report {self.target}"
-
-#9 user log
-class Activity_Log(models.Model):
-    ip_address = models.GenericIPAddressField(blank=True, null=True)
-    action = models.CharField(max_length=50, blank=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE, 
-        related_name='activity_logs', 
-        null=True, 
-        blank=True)
-
-    #target id: thread, reply or user
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    target = GenericForeignKey('content_type', 'object_id')
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['user', '-created_at'], 
-                         name='idx_logs_user_create'),
-            models.Index(fields=['content_type', 'object_id', '-created_at'], 
-                         name='idx_logs_target_create'),
-        ]
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.user} - {self.action}"
-

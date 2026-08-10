@@ -45,6 +45,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', 
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -77,8 +79,8 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-print("Looking for .env at:", BASE_DIR / '.env')
-print("Does it exist?", (BASE_DIR / '.env').exists())
+# print("Looking for .env at:", BASE_DIR / '.env')
+# print("Does it exist?", (BASE_DIR / '.env').exists())
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 # Read .env file
@@ -109,9 +111,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-]
+CORS_ALLOWED_ALL_ORIGINS = True
+
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:3000',
+# ]
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
