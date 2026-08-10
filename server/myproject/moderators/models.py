@@ -1,0 +1,116 @@
+from django.db import models
+from datetime import timedelta
+from django.utils import timezone
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from threads.models import Thread
+from cores.models import Status
+
+# Create your models here.
+#6 Bookmark
+class Bookmark(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE, 
+        related_name='bookmarks', 
+        null=False, 
+        blank=False)
+
+    thread = models.ForeignKey(
+        Thread,
+        on_delete=models.PROTECT,
+        related_name='bookmarks', 
+        null=False, 
+        blank=False)
+    
+    note = models.TextField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+       constraints = [
+            models.UniqueConstraint(
+                fields=["user", "thread"],
+                name="unique_user_thread_bookmark",
+            )
+        ]
+       indexes = [
+            models.Index(fields=['user','thread','-created_at'],
+                            name='idx_mark_user_thread_create'),
+        ]
+       ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user} bookmarked {self.thread}"
+
+
+#8 Report
+class Report(models.Model):
+    violation_type = models.CharField(max_length=500, blank=False)
+    reason = models.TextField(max_length=2000,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    point_punishment = models.IntegerField(default=0)
+
+    #who report
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE, 
+        related_name='reports', 
+        null=True, 
+        blank=True) 
+    #target id: thread, reply or user
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    target = GenericForeignKey('content_type', 'object_id')
+
+    status = models.ForeignKey(
+        Status,
+        on_delete=models.PROTECT,
+        related_name='reports',
+        null=False,
+        blank=False)
+    class Meta:
+        indexes = [
+            models.Index(fields=['user','status','-created_at'],
+                            name='idx_re_user_status_create'),
+            models.Index(fields=['content_type', 'object_id','-created_at'],
+                        name='idx_re_type_object_create')
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user} report {self.target}"
+
+#9 user log
+class Activity_Log(models.Model):
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    action = models.CharField(max_length=50, blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE, 
+        related_name='activity_logs', 
+        null=True, 
+        blank=True)
+
+    #target id: thread, reply or user
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    target = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', '-created_at'], 
+                         name='idx_logs_user_create'),
+            models.Index(fields=['content_type', 'object_id', '-created_at'], 
+                         name='idx_logs_target_create'),
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user} - {self.action}"
+
