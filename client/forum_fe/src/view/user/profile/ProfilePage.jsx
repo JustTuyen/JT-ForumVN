@@ -147,7 +147,7 @@ function ThreadOverview(){
             <div className="py-2">
                 <div className="grid grid-cols-1 gap-4">
                     <div className="card shadow-md">
-                        <div className="flex flex-row gap-2">
+                        <div className="flex flex-row gap-4">
                             <img src={defaultImg} alt="" id='thread-thumbnail'/>
                             <div className="thread-title">
                                 <p>Arknights Endfield might be getting heat with IS , rouge like and somthing, something </p>
@@ -156,7 +156,7 @@ function ThreadOverview(){
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-2
                          justify-between">
-                             <div className="flex gap-2 items-end">
+                            <div className="flex gap-2 items-end">
                                 <p className="date-info">
                                     <span className="text-[#9400D3] font-bold">created:</span> 22/02/2026 
                                     -
@@ -173,7 +173,7 @@ function ThreadOverview(){
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex flex-row justify-end p-2 gap-2">
+                            <div className="flex flex-row justify-end gap-2">
                                 <Button variant="outlined" className="shadow-md" id='thread-btn-1'>
                                     View
                                 </Button>
@@ -209,7 +209,7 @@ function BookMarks(){
             <div className="py-2">
                 <div className="grid grid-cols-1 gap-4">
                     <div className="card shadow-md">
-                        <div className="flex flex-row gap-2">
+                        <div className="flex flex-row gap-4">
                             <img src={defaultImg} alt="" id='thread-thumbnail'/>
                             <div className="thread-title">
                                 <p>Arknights Endfield might be getting heat with IS , rouge like and somthing, something </p>
@@ -235,7 +235,7 @@ function BookMarks(){
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex flex-row justify-end p-2 gap-2">
+                            <div className="flex flex-row justify-end gap-2">
                                 <Button variant="outlined" className="shadow-md" id='thread-btn-1'>
                                     View
                                 </Button>
@@ -256,7 +256,7 @@ function Posting(){
     return(
         <>
          <div className="py-2 min-h-[60vh]">
-            <div className="flex gap-2 items-center border-b-2 border-[#9400D3]">
+            <div className="flex gap-2 pt-4 items-center border-b-2 border-[#9400D3]">
                 <i class="bi bi-pencil-square" id="head-icon"></i>
                 <p id='header-text'>WRITE A THREAD</p>
             </div>
@@ -470,22 +470,30 @@ function Profile(){
                         <div class="grid grid-cols-6 gap-4">
                             <div className="side-menu">
                                 <ul>
-                                    <li className="flex gap-4">
-                                        <i class="bi bi-house-door-fill"></i>
-                                        <p>Profile</p>
-                                    </li>
-                                    <li className="flex gap-4">
-                                        <i class="bi bi-search"></i>
-                                        <p>Search</p>
-                                    </li>
-                                    <li className="flex gap-4">
-                                        <i class="bi bi-bookmark-star-fill"></i>
-                                        <p>Rank</p>
-                                    </li>
-                                    <li className="flex gap-4">
-                                        <i class="bi bi-gear-fill"></i>
-                                        <p>Setting</p>
-                                    </li>
+                                    <Link to="/profile">
+                                        <li className="flex gap-4">
+                                            <i class="bi bi-house-door-fill"></i>
+                                            <p>Profile</p>
+                                        </li>
+                                    </Link>
+                                    <Link to="/search">
+                                        <li className="flex gap-4">
+                                            <i class="bi bi-search"></i>
+                                            <p>Search</p>
+                                        </li>
+                                    </Link>
+                                    <Link to="/rank">
+                                        <li className="flex gap-4">
+                                            <i class="bi bi-bookmark-star-fill"></i>
+                                            <p>Rank</p>
+                                        </li>
+                                    </Link>
+                                     <Link to="/setting">
+                                        <li className="flex gap-4">
+                                            <i class="bi bi-gear-fill"></i>
+                                            <p>Setting</p>
+                                        </li>
+                                    </Link>
                                 </ul>
                             </div>
 
@@ -493,22 +501,36 @@ function Profile(){
                                 {/* routerlink section */}
                                 <div className="nav-bar flex gap-2">
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <Button id='nav-items'
+                                        <button
                                             onClick={() => setActiveTab('overview')}
-                                           className={`${
-                                            activeTab === 'overview'
+                                            className={`px-3.5 py-1.5 text-base font-bold rounded-full border border-[#9400D3] transition-all duration-300 capitalize ${
+                                                activeTab === 'overview'
                                                 ? 'bg-[#9400D3] text-white shadow-md'
-                                                : 'text-gray-600 hover:bg-gray-200/60'
+                                                : 'bg-white text-[#9400D3] hover:bg-[#9400D3] hover:text-white'
                                             }`}
-                                        >Your </Button>
-                                        <Button variant="outlined" id='nav-items'
-                                        onClick={() => setActiveTab('thread-overview')}>
-                                            Your Thread
-                                        </Button>
-                                        <Button variant="outlined" id='nav-items'
-                                        onClick={() => setActiveTab('bookmark')}>
-                                            Your Bookmark
-                                        </Button>
+                                            >
+                                            Account Manager
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveTab('thread-overview')}
+                                            className={`px-3.5 py-1.5 text-base font-bold rounded-full border border-[#9400D3] transition-all duration-300 capitalize ${
+                                                activeTab === 'thread-overview'
+                                                ? 'bg-[#9400D3] text-white shadow-md'
+                                                : 'bg-white text-[#9400D3] hover:bg-[#9400D3] hover:text-white'
+                                            }`}
+                                            >
+                                            Thread Manager
+                                        </button>
+                                       <button
+                                            onClick={() => setActiveTab('bookmark')}
+                                            className={`px-3.5 py-1.5 text-base font-bold rounded-full border border-[#9400D3] transition-all duration-300 capitalize ${
+                                                activeTab === 'bookmark'
+                                                ? 'bg-[#9400D3] text-white shadow-md'
+                                                : 'bg-white text-[#9400D3] hover:bg-[#9400D3] hover:text-white'
+                                            }`}
+                                            >
+                                            Bookmark Manager
+                                        </button>
                                         <Button variant="outlined" id='nav-post'
                                         onClick={() => setActiveTab('posting')}>
                                             Post

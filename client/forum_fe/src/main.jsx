@@ -16,7 +16,11 @@ import Register from './view/user/RegisterPage.jsx';
 import Thread from './view/user/ThreadPage.jsx'
 import Search from './view/user/SearchPage.jsx';
 import Profile from './view/user/profile/ProfilePage.jsx'
+import DashBoard from './view/admin/DashBoardPage.jsx';
+import ThreadManager from './view/admin/ThreadManager.jsx';
+import User from './view/user/UserPage.jsx';
 const router = createBrowserRouter([
+  //user
   {path:'/', element:<Home/>},
   {path:'/menu', element:<Menu/>},
   {path:'*', element:<NotFound/>},
@@ -25,6 +29,10 @@ const router = createBrowserRouter([
   {path:'/thread', element:<Thread/>},
   {path:'/search', element:<Search/>},
   {path:'/profile', element:<Profile/>},
+  {path:'/user', element:<User/>},
+  // admin
+  {path:'/dashboard', element:<DashBoard/>},
+  {path:'/dashboard/thread', element:<ThreadManager/>},
 ])
 
 createRoot(document.getElementById('root')).render(

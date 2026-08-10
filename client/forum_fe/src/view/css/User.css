@@ -1,0 +1,107 @@
+.navigator-indicator{
+    font-size: 18px;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.user-info{
+    padding: 10px;
+    background-color: white;
+    border-radius: 16px;
+    border: #9400D3 1px solid;
+
+}
+
+#user-icon{
+    height: 10rem;
+    width: 10rem;
+    border-radius: 16pc;
+    object-fit: cover;
+    object-position: center;
+    border: #9400D3 1px solid;
+}
+.user-thread{
+    font-size: 16px;
+    padding: 0px 5px;
+    border-left: #9400D3 2px solid;
+}
+.user-name{
+    font-weight: bold;
+    font-size: 24px;
+}
+
+.user-context{
+    display: -webkit-box;
+    -webkit-line-clamp: 5; /* Change '2' to the number of lines you want before '...' */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.user-context p{
+    text-align: justify;
+    text-wrap: balance;
+}
+
+.sorting{
+    border: none;
+    color: #9400D3;
+    font-size: 16px;
+    padding: 5px;
+    align-items: center;
+}
+
+.sorting select{
+    background-color: white;
+    padding: 5px 10px;
+    border-radius: 16px;
+    border: #9400D3 1px solid;
+}
+
+
+.card-title p{
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Change '2' to the number of lines you want before '...' */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    
+    /* Ensures words break properly if a single word is too long */
+    word-break: break-word;
+}
+
+.card-title{
+    height: 70%;
+}
+
+
+.info-archive{
+    background-color: #BFC9D1;
+}
+
+.info-reply{
+    background-color: #DE80E9;
+}
+
+.card-info{
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+@media (max-width: 740px){
+    
+    .navigator-indicator{
+        font-size: 13px;
+        color: white;
+        display: flex;
+        align-items: center;
+    }
+}
