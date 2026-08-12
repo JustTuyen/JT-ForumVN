@@ -7,6 +7,7 @@ router = DefaultRouter()
 router.register('plans', PlanViewSet, basename='plan')
 router.register('users', UserViewSet, basename='user')
 router.register('subscriptions', SubscriptionViewSet, basename='subscription')
+
 urlpatterns = [
     path('', include(router.urls)),
 ]

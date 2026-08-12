@@ -5,6 +5,7 @@ from .views import CategoryViewSet, ThreadViewSet
 router = DefaultRouter()
 router.register('categories', CategoryViewSet, basename='category')
 router.register('threads', ThreadViewSet, basename='thread')
+
 urlpatterns = [
     path('', include(router.urls)),
 ]
