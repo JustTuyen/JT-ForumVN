@@ -90,7 +90,7 @@ class Thread(models.Model):
             subscription = (
                 self.user.subscriptions
                 .filter(
-                    status__status_name="active",
+                    status__status_name="On Going",
                     expire_at__gt=timezone.now(),
                 )
                 .select_related("plan")

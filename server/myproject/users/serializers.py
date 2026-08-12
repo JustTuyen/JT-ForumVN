@@ -1,8 +1,13 @@
 from rest_framework import serializers
-from .models import Plan, User
+from .models import Plan, User, Subscription
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 
+#outside model
+from threads.models import Thread
+
+
+#view here
 class PLanSerializers(serializers.ModelSerializer):
 
     duration_days = serializers.SerializerMethodField()
@@ -30,6 +35,20 @@ class PLanSerializers(serializers.ModelSerializer):
             return round(obj.thread_duration.total_seconds() / 3600, 2)
         return None
 
+class SubscriptionSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = [
+            'auto_renew',
+            'start_at',
+            'expire_at',
+            'user',
+            'plan',
+            'status',
+            'created_at'
+        ]
+        read_only_fields = ['created_at']
+
 
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
@@ -44,51 +63,23 @@ class UserSerializers(serializers.ModelSerializer):
         ]    
         read_only_fields = ['created_at','updated_at']
 
-
-#user registeration
-class UserRegisterSerializers(serializers.ModelSerializer):
-    password = serializers.CharField(write_only = True, validators = [validate_password])
-
+#Get all user including data
+#mini thread ThreadMiniSerializer
+class ThreadMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Thread
+        fields = ['id','title','context','view_count','like_count',
+                  'created_at','updated_at']
+class DetailsUserSerializers(serializers.ModelSerializer):
+    threads  = ThreadMiniSerializer(many=True, read_only=True)
     class Meta:
         model = User
-        fields = ['id','username','email','password']
-        
-    #harsher
-    def create(self, validated_data):
-        password = validated_data.pop('password')
-        user = User(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
-
-#user rank role only can update data this much :/
-class UpdateUserSerializers(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['username','email','description', 
-                  'gender','birth_date','profile_image']
-
-#admin managing other user
-class UserAdminSerializers(serializers.ModelSerializer):
-    class Meta:
-            model = User
-            fields = [
-                'id', 'email','username','description', 'gender', 
-                'birth_date','current_point',
-                'profile_image',
-                'role',
-                'status',
-                'created_at','updated_at',
-            ]    
-            read_only_fields = ['created_at','updated_at']
-
-class UserModeratorSerializers(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['description','gender','birth_date','profile_image', 'status']
-
-        
-class PublicUserSerializers(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id','username','description','gender','profile_image','created_at']
+        fields = [
+            'id', 'email','username','description', 'gender', 
+            'birth_date','current_point',
+            'profile_image',
+            'role', 'threads',
+            'status', 
+            'created_at','updated_at',
+        ]    
+        read_only_fields = ['created_at','updated_at']
