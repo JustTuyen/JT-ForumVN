@@ -19,6 +19,7 @@ import Profile from './view/user/profile/ProfilePage.jsx'
 import DashBoard from './view/admin/DashBoardPage.jsx';
 import ThreadManager from './view/admin/ThreadManager.jsx';
 import User from './view/user/UserPage.jsx';
+import AboutUs from './view/user/AboutPage.jsx';
 const router = createBrowserRouter([
   //user
   {path:'/', element:<Home/>},
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
   {path:'/search', element:<Search/>},
   {path:'/profile', element:<Profile/>},
   {path:'/user', element:<User/>},
+  {path:'/about', element:<AboutUs/>},
   // admin
   {path:'/dashboard', element:<DashBoard/>},
   {path:'/dashboard/thread', element:<ThreadManager/>},
