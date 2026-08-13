@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from .models import Plan, User, Subscription
 from .serializers import PLanSerializers
@@ -5,6 +6,7 @@ from .serializers import SubscriptionSerializers
 from .serializers import (
     ProfileUserSerializers,
     UserSerializers, ProfileUserSerializers,UserManagerSerializers, UpdateUserPassword,
+    UserSerializers, ProfileUserSerializers,UserManagerSerializers,
     RegisterSerializers, EmailTokenObtainPairSerializer, DetailsUserSerializers, 
     AdminUserSerializers, ModeratorUserSerializers, UpdateUserSerializers
 )
@@ -68,7 +70,6 @@ class IsNormieOrBoss(permissions.BasePermission):
             or u.is_staff
             or u.role in [User.Role.ADMIN, User.Role.MODERATOR]
         )
-
 
 class UserViewSet(viewsets.ModelViewSet):
     #executes an SQL JOIN to pre-fetch related ForeignKey objects (status and profile_image) in a single query,

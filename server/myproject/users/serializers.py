@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 #outside model
 from cores.models import Status
 from threads.models import Thread
+from threads.models import Thread
+from cores.models import Status
 
 #literally dto :P
 class PLanSerializers(serializers.ModelSerializer):
@@ -49,7 +51,6 @@ class SubscriptionSerializers(serializers.ModelSerializer):
             'created_at'
         ]
         read_only_fields = ['created_at']
-    
 #USER MANAGER
 User = get_user_model()
 class UserSerializers(serializers.ModelSerializer):
@@ -65,6 +66,9 @@ class UserSerializers(serializers.ModelSerializer):
         ]    
         read_only_fields = ['created_at','updated_at']
 
+
+
+#USER PART
     #Get outside information
 class ThreadMiniSerializer(serializers.ModelSerializer):
     class Meta:
@@ -110,6 +114,16 @@ class RegisterSerializers(serializers.ModelSerializer):
         user.set_password(password)
 
         #for auto subscripted
+    class Meta:
+        model = User
+        fields = ['username','email','password']
+
+    #hasher
+    def create(self, validate_data):
+
+        password = validate_data.pop('password')
+        user = User(**validate_data)
+        user.set_password(password)
         user.status = Status.objects.get(status_name='Active')
         user.save()
 
@@ -135,6 +149,7 @@ class AdminUserSerializers(serializers.ModelSerializer):
         model = User
         fields = [
             'id','username','email','gender','birth_date','profile_image',
+            'username','email','gender','birth_date','profile_image',
             'created_at','updated_at','password'
         ]
         read_only_fields = ['created_at','updated_at',]
@@ -245,5 +260,6 @@ class UpdateUserPassword(serializers.ModelSerializer):
 
 
 #profile handler
-class UploadProfileImageUserSerializer(serializers.Serializer):
-    file = serializers.ImageField()
+# class UploadProfileImageUserSerializer(serializers.Serializer):
+#     file = serializers.ImageField()
+#     return file
