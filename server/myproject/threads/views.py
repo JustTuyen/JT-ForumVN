@@ -1,30 +1,36 @@
-from django.db.models import F
+from django.db.models import Q, Count
 from rest_framework import viewsets, permissions, status
 from .models import Category, Thread, Reply
-from .serializers import CategorySerializer, ReplySerializer
+from .serializers import CategorySerializer
 from .serializers import ImageSerializer
 from rest_framework.parsers import MultiPartParser, FormParser
+from .serializers import ( 
+    ThreadDataAdminSerializer, ThreadUpdateAdminSerializer,
+    ThreadDataModSerializer, ThreadUpdateModSerializer,
+    CreateThreadSerializer, ListingThreadSerializer,
+    UserPublicThreadSerializer, ThreadUpdateUserSerializer
+    )
 from .serializers import (
-    ThreadSerializer, CreateThreadSerializer, AdminThreadSerializer, DetailsUserThreadSerializer,
-    UpdateModeratorThreadSerializer,UpdateUserThreadSerializer,PublicThreadSerializer
+    CreateReplySerializer, ReplyUpdateSerializer,PublicReplySerializer
 )
 from rest_framework.response import Response
 from threads.models import Image
 from users.models import User
 from rest_framework.decorators import action
 
+#filter
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
 # Create your views here.
-
-class ReplyViewSet(viewsets.ModelViewSet):
-    queryset = Reply.objects.select_related('status','thread','user').all()
-    serializer_class = ReplySerializer
-    permission_classes = [permissions.AllowAny]
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.select_related('status').all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
 
+
+
+#checking user role - permission
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         u = request.user
@@ -36,7 +42,8 @@ class IsModeratorOrAdmin(permissions.BasePermission):
         return u.is_authenticated and (
             u.is_staff or u.role in [User.Role.ADMIN, User.Role.MODERATOR]
         )
-class IsNormieOrBoss(permissions.BasePermission):
+
+class IsUserOrBoss(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         u = request.user
         if not u.is_authenticated:
@@ -46,88 +53,182 @@ class IsNormieOrBoss(permissions.BasePermission):
             or u.is_staff
             or u.role in [User.Role.ADMIN, User.Role.MODERATOR]
         )
-    
-    
+
 class ThreadViewSet(viewsets.ModelViewSet):
-    queryset = Thread.objects.select_related('user','category','status').all()
-    # serializer_class = ThreadSerializer
-    # permission_classes = [permissions.AllowAny]
+    queryset = Thread.objects.select_related('user', 'category', 'status').prefetch_related('images').all()
+    # serializer_class = UserPublicThreadSerializer   
+    # permission_classes = [IsAdmin]
+
     def get_serializer_class(self):
         if self.action == 'create':
             return CreateThreadSerializer
-        
-        if self.action in ['update', 'partial_update']:
-            if not self.request or not self.request.user.is_authenticated:
-                return PublicThreadSerializer
 
-            sender = self.request.user
-            try:
-                target = self.get_object()
-                if target.user != sender:
-                    if sender.is_staff or getattr(sender, 'role', None) == User.Role.ADMIN:
-                        return AdminThreadSerializer
-                    return UpdateModeratorThreadSerializer
-            except Exception:
-                pass
-            return UpdateUserThreadSerializer
-        
-        if self.action in ['retrieve', 'top_views']: 
-            if not self.request or not self.request.user.is_authenticated:
-                return PublicThreadSerializer
-            
-            sender = self.request.user
+        if self.action in ['update', 'partial_update']:
+            sender = getattr(self.request, 'user', None)
+            if not sender or not sender.is_authenticated:
+                return UserPublicThreadSerializer
             try:
                 target = self.get_object()
             except Exception:
-                return PublicThreadSerializer
-            if (
-                target.user == sender
-                or sender.is_staff
-                or getattr(sender, 'role', None) in [User.Role.ADMIN, User.Role.MODERATOR]
-            ):
-                return ThreadSerializer
-            return DetailsUserThreadSerializer
-        return PublicThreadSerializer
+                return ThreadUpdateUserSerializer
+
+            if target.user == sender:
+                return ThreadUpdateUserSerializer
+
+            if getattr(sender, 'role', None) == User.Role.ADMIN:
+                return ThreadUpdateAdminSerializer
+            if getattr(sender, 'role', None) == User.Role.MODERATOR:
+                return ThreadDataModSerializer
+
+        if self.action == 'retrieve':
+            sender = getattr(self.request, 'user', None)
+            if sender and sender.is_authenticated:
+                if getattr(sender, 'role', None) == User.Role.ADMIN:
+                    return ThreadDataAdminSerializer
                 
-    #login gap
+                if getattr(sender, 'role', None) == User.Role.MODERATOR:
+                    return ThreadDataModSerializer
+            return UserPublicThreadSerializer
+            #both for none login and normal user
+         
+        return UserPublicThreadSerializer
+
     def get_permissions(self):
         if self.action == 'create':
-            return[permissions.IsAuthenticated()]
+            return [permissions.AllowAny()]
 
-        if self.action in ['update','partial_update']:
-            return [permissions.IsAuthenticated(), IsNormieOrBoss()]
+        if self.action in ['update', 'partial_update']:
+            return [permissions.IsAuthenticated(), IsUserOrBoss()]
 
-        #deleted
         if self.action == 'destroy':
-            return [IsAdmin()]
+            return [permissions.IsAuthenticated(), IsAdmin()]
 
         if self.action == 'retrieve':
             return [permissions.AllowAny()]
+        #custom api call
+        if self.action == 'my_threads':
+            return [permissions.IsAuthenticated()]    
         
-        if self.action == 'suspend':
-            return [IsModeratorOrAdmin()]
+        if self.action in ['listings', 'searcher']:
+            return [permissions.AllowAny()]
+        return [IsAdmin()]
 
-        return [permission() for permission in self.permission_classes]
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        Thread.objects.filter(pk=instance.pk).update(view_count=F('view_count') + 1)
-        instance.refresh_from_db()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-
-    @action (detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def mine(self, request):
-        # """GET /api/threads/mine/ — the logged-in user's own threads."""
+    #searching for user-threads
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def my_threads(self, request):
+        #"""GET /api/threads/my_threads/ — the logged-in user's own threads."""
         threads = self.get_queryset().filter(user=request.user)
         page = self.paginate_queryset(threads)
-        serializer = UserThreadSerializer(page or threads, many=True, context={'request': request})
+        serializer = ThreadUpdateUserSerializer(page or threads, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data) if page is not None else Response(serializer.data)
 
-    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny],)
-    def top_views(self, request):
+    
+    #filtering a minimal threads listing, sorting through status, category and date
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def listings(self, request):
+        #"""GET /api/threads/listings/?category=3 — all user can see all threads list"""
+        threads = (
+            self.get_queryset()
+            .select_related('status')
+            .prefetch_related('images')
+            .annotate(reply_count=Count('replies'))
+        )
 
-        threads = self.get_queryset().order_by('-view_count')[:20]
-        serializer = PublicThreadSerializer(threads, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        category_id = request.query_params.get('category')
+        if category_id:
+            threads = threads.filter(category_id=category_id)
+
+        status_id = request.query_params.get('status')
+        if status_id:
+            threads = threads.filter(status_id=status_id)
+
+        ordering = request.query_params.get('ordering', '-created_at')
+        if ordering.lstrip('-') in ['created_at', 'view_count', 'like_count']:
+            threads = threads.order_by(ordering)
+
+        page = self.paginate_queryset(threads)
+        if page is not None:
+            serializer = ListingThreadSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    #searching through key words
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def searcher(self, request):
+        #"""GET /api/threads/searcher/?q=keyword"""
+        #http://127.0.0.1:8000/api/threads/searcher/?q=django&status=3
+        keyword = request.query_params.get('q', '').strip()
+        if not keyword:
+            return Response({'detail': 'Query parameter "q" is required.'}, status=400)
+        threads = (
+            self.get_queryset()
+            .filter(Q(title__icontains=keyword) | Q(context__icontains=keyword) | Q(name__icontains=keyword))
+            .select_related('status')
+            .prefetch_related('images')
+            .annotate(reply_count=Count('replies', distinct=True))
+        )
+
+        category_id = request.query_params.get('category')
+        if category_id:
+            threads = threads.filter(category_id=category_id)
+
+        status_id = request.query_params.get('status')
+        if status_id:
+            threads = threads.filter(status_id=status_id)
+
+        ordering = request.query_params.get('ordering', '-created_at')
+        if ordering.lstrip('-') in ['created_at', 'view_count', 'like_count']:
+            threads = threads.order_by(ordering)
+
+        page = self.paginate_queryset(threads)
+        if page is not None:
+            serializer = ListingThreadSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
+        return Response(serializer.data)
+
+class ReplyViewSet(viewsets.ModelViewSet):
+    queryset = Reply.objects.select_related('status','thread','user').all()
+    # serializer_class = ReplySerializer
+    # permission_classes = [permissions.AllowAny]
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CreateReplySerializer
+        
+        if self.action in ['update', 'partial_update']:
+            sender = getattr(self.request, 'user', None)
+            if not sender or not sender.is_authenticated:
+                return PublicReplySerializer
+
+            try:
+                target = self.get_object()
+            except Exception:
+                return PublicReplySerializer
+
+            if target == sender:
+                return ReplyUpdateSerializer
+            
+            #Admin / Staff updating another user
+            if getattr(sender, 'role', None) == User.Role.ADMIN:
+                return ReplyUpdateSerializer
+                #login is moderator
+            if getattr(sender, 'role', None) == User.Role.MODERATOR:
+                return ReplyUpdateSerializer
+            #fallback        
+            return PublicReplySerializer
+        
+        return PublicReplySerializer
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [permissions.AllowAny()]
+
+        if self.action in ['update', 'partial_update']:
+            return[permissions.IsAuthenticated(),IsUserOrBoss()]
+        
+        if self.action == 'destroy':
+            return[permissions.IsAuthenticated(), IsAdmin()]
+        return [IsAdmin()]

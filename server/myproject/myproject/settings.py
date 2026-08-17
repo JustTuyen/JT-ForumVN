@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    "storages",
+    'django_filters',
+    'storages',
     "rest_framework",
     'users',
     'threads',
@@ -147,7 +148,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
         # "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly",
-    ]
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+    ],
 }
 
 from datetime import timedelta

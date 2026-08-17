@@ -60,7 +60,6 @@ class EmailTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
 
 
-
 #user view set
 User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):

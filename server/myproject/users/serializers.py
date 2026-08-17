@@ -50,10 +50,15 @@ class SubscriptionSerializers(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at']
     def validate_user(self,value):
-        if not value.status or value.status.status_name != 'active':
+        if not value.status or value.status.status_name != 'Active':
             raise  serializers.ValidationError("This user account is  not active.") 
         return value
 
+    def validate_plan(self, value):
+        if not value.status or value.status.status_name != 'On Going':
+            raise serializers.ValidationError("This subscription plan is not currently available or active.")
+        return value
+    
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
             model = User
@@ -100,8 +105,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
         return user
-
-
 
 #data display for admins and moderator
 #view admin
@@ -239,13 +242,18 @@ class UserPublicDataSerializer(serializers.ModelSerializer):
 #update
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
-            model = User
-            fields = [
-                'id','email','username',
-                'description','gender',
-                'birth_date',
-            ]
-            read_only_fields = ['id']
+        model = User
+        fields = [
+            'id','email','username',
+            'description','gender',
+            'birth_date',
+        ]
+        read_only_fields = ['id']
+
+    def validate_user(self,value):
+        if not value.status or value.status.status_name != 'Active':
+            raise  serializers.ValidationError("This user account is  not active.") 
+        return value
 
 class UserUpdatePasswordSerializer(serializers.ModelSerializer):
 
@@ -257,6 +265,11 @@ class UserUpdatePasswordSerializer(serializers.ModelSerializer):
                 'password',
             ]
             read_only_fields = ['id']
+    def validate_user(self,value):
+        if not value.status or value.status.status_name != 'Active':
+            raise  serializers.ValidationError("This user account is  not active.") 
+        return value
+    
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
         instance = super().update(instance, validated_data)
@@ -267,3 +280,7 @@ class UserUpdatePasswordSerializer(serializers.ModelSerializer):
 
 class UserUpdateImageSerializer(serializers.Serializer):
     profile_image = serializers.ImageField(required=True)
+    def validate_user(self,value):
+        if not value.status or value.status.status_name != 'Active':
+            raise  serializers.ValidationError("This user account is  not active.") 
+        return value
