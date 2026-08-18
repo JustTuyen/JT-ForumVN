@@ -86,7 +86,7 @@ class CreateThreadSerializer(serializers.ModelSerializer):
         model = Thread
         fields = [
             'name', 'title', 'context',
-            'images',
+            'images', 'status',
             'category','user'
         ]
     def validate_user(self, value):
@@ -145,7 +145,7 @@ class MiniReplySerializer(serializers.ModelSerializer):
 #Admin 
 class ThreadDataAdminSerializer(serializers.ModelSerializer):
     replies = MiniReplySerializer(many=True, read_only=True)
-    category_name = serializers.ReadOnlyField(source='category.name')
+    category_name = serializers.ReadOnlyField(source='category.title')
     user_username = serializers.ReadOnlyField(source='user.username')
     status_name = serializers.ReadOnlyField(source='status.status_name')
     images = MiniImageSerializer(many=True, read_only=True)
@@ -153,7 +153,8 @@ class ThreadDataAdminSerializer(serializers.ModelSerializer):
         model = Thread
         fields = [
             'id', 'name', 'title', 'context', 
-            'view_count','like_count','point_reward',
+            'view_count','like_count',
+            'point_reward',
             'replies','images',
             'user','user_username',
             'category', 'category_name',
@@ -202,7 +203,7 @@ class ThreadUpdateModSerializer(serializers.ModelSerializer):
 class UserPublicThreadSerializer(serializers.ModelSerializer):
     images = MiniImageSerializer(many=True, read_only=True)
     replies = MiniReplySerializer(many=True, read_only=True)
-    category_name = serializers.ReadOnlyField(source='category.name')
+    category_name = serializers.ReadOnlyField(source='category.title')
     user_username = serializers.ReadOnlyField(source='user.username')
     status_name = serializers.ReadOnlyField(source='status.status_name')
     class Meta:
@@ -212,9 +213,11 @@ class UserPublicThreadSerializer(serializers.ModelSerializer):
                 'view_count','like_count',
                 'expire_at', 'reply_limit',
                 'images',
+                'category',
                 'category_name',
                 'user_username',
                 'replies',
+                'status',
                 'status_name',
                 'created_at','updated_at'
             ]
@@ -236,6 +239,7 @@ class ListingThreadSerializer(serializers.ModelSerializer):
         model = Thread
         fields = [
             'id','context',
+            'title',
             'status_name',
             'reply_count','images'
         ]
@@ -252,13 +256,12 @@ class CreateReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Reply
         fields = [
-            'id', 'name', 'like_count', 'point_reward',
+            'name',
             'context',
             'parent_reply', 'images',
             'thread','status','user',
-            'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        # read_only_fields = ['created_at', 'updated_at']
     
     def validate_user(self, value):
         if not value.status or value.status.status_name != 'Active':

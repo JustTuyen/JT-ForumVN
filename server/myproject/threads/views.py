@@ -17,7 +17,9 @@ from rest_framework.response import Response
 from threads.models import Image
 from users.models import User
 from rest_framework.decorators import action
-
+#
+from django.utils import timezone
+import logging
 #filter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
@@ -27,8 +29,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.select_related('status').all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
-
-
 
 #checking user role - permission
 class IsAdmin(permissions.BasePermission):
@@ -54,6 +54,7 @@ class IsUserOrBoss(permissions.BasePermission):
             or u.role in [User.Role.ADMIN, User.Role.MODERATOR]
         )
 
+logger = logging.getLogger(__name__)
 class ThreadViewSet(viewsets.ModelViewSet):
     queryset = Thread.objects.select_related('user', 'category', 'status').prefetch_related('images').all()
     # serializer_class = UserPublicThreadSerializer   
@@ -95,7 +96,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            return [permissions.AllowAny()]
+            return [permissions.IsAuthenticated()]
 
         if self.action in ['update', 'partial_update']:
             return [permissions.IsAuthenticated(), IsUserOrBoss()]
@@ -109,20 +110,24 @@ class ThreadViewSet(viewsets.ModelViewSet):
         if self.action == 'my_threads':
             return [permissions.IsAuthenticated()]    
         
-        if self.action in ['listings', 'searcher']:
+        if self.action in ['listings', 'searcher','top_only']:
             return [permissions.AllowAny()]
         return [IsAdmin()]
 
+    #making sure thread status is updated when expire day is reached
+    def get_queryset(self):
+        Thread.objects.filter(status_id=1, expire_at__lte=timezone.now()).update(status_id=2)
+        return Thread.objects.select_related('user', 'category', 'status').prefetch_related('images').all()
+    
     #searching for user-threads
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['get','put'], permission_classes=[permissions.IsAuthenticated])
     def my_threads(self, request):
         #"""GET /api/threads/my_threads/ — the logged-in user's own threads."""
         threads = self.get_queryset().filter(user=request.user)
         page = self.paginate_queryset(threads)
-        serializer = ThreadUpdateUserSerializer(page or threads, many=True, context={'request': request})
+        serializer = UserPublicThreadSerializer(page or threads, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data) if page is not None else Response(serializer.data)
 
-    
     #filtering a minimal threads listing, sorting through status, category and date
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def listings(self, request):
@@ -131,8 +136,16 @@ class ThreadViewSet(viewsets.ModelViewSet):
             self.get_queryset()
             .select_related('status')
             .prefetch_related('images')
-            .annotate(reply_count=Count('replies'))
+            .annotate(reply_count=Count('replies', distinct=True))
         )
+
+        #GET /api/threads/listings/?ordering=title
+        letter = request.query_params.get('letter', '').strip()
+        if letter:
+            if letter == '#':
+                threads = threads.filter(title__iregex=r'^[^a-zA-Z]')
+            else:
+                threads = threads.filter(title__istartswith=letter[0])
 
         category_id = request.query_params.get('category')
         if category_id:
@@ -189,6 +202,24 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
         serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def top_only(self, request):
+        #"""GET /api/threads/top_only/ — top 20 threads with status=1"""
+        threads = (
+            self.get_queryset()
+            .select_related('status')
+            .prefetch_related('images')
+            .filter(status_id = 2)
+            .annotate(reply_count=Count('replies', distinct=True))
+            .order_by('-view_count')[:20]
+        )
+
+        serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+
 
 class ReplyViewSet(viewsets.ModelViewSet):
     queryset = Reply.objects.select_related('status','thread','user').all()

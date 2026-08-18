@@ -219,7 +219,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'description', 'gender',
             'birth_date','current_point',
             'profile_image',
-            'threads',
+            'threads', 'role',
             'created_at','updated_at',
         ]
         read_only_fields = ['created_at'] 
@@ -234,7 +234,7 @@ class UserPublicDataSerializer(serializers.ModelSerializer):
             'description','gender',
             'birth_date',
             'profile_image',
-            'threads',
+            'threads','role',
             'created_at',
         ]
         read_only_fields = ['created_at'] 
