@@ -30,7 +30,7 @@ const router = createBrowserRouter([
   {path:'*', element:<NotFound/>},
   {path:'/login', element:<Login/>},
   {path:'/register', element:<Register/>},
-  {path:'/thread', element:<Thread/>},
+  {path:'/threads/:id', element:<Thread/>},
   {path:'/search', element:<Search/>},
   {path:'/profile', element:<Profile/>},
   {path:'/user', element:<User/>},
