@@ -8,9 +8,12 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import SendIcon from '@mui/icons-material/Send';
 import '../css/Thread.css'
 //images
+import CancelIcon from '@mui/icons-material/Cancel';
 import { useEffect, useState } from "react";
 import api from "../../auth/ApiHandle";
 import { useAuth } from "../../auth/AuthContext";
+//
+import { ToastContainer, toast } from 'react-toastify';            
 
 function ThreadImagesGallery({images}){
     if(!images || images.length == 0)
@@ -31,19 +34,46 @@ function ThreadImagesGallery({images}){
     )
 }
 
-function ThreadRepliesGallery({replies}){
+function ThreadRepliesGallery({replies, onSelectReply}){
+    const sortReplies = replies?.slice().sort((a,b)=>
+    new Date(a.created_at) - new Date(b.created_at))
+
     if(!replies || replies.length == 0)
         return null
 
+    const handleSelectReply = (reply_id) => {
+        onSelectReply(reply_id);
+        document.getElementById('reply-box')?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+
+    const scrollToReply = (replyId)=>{
+        const targetElement = document.getElementById(`${replyId}`); 
+        if (targetElement) {
+        // 1. Smoothly scroll into view
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // 2. Add temporary visual highlight effect
+            targetElement.classList.add('bg-purple-100', 'ring-2', 'ring-[#9400D3]');
+            
+            // 3. Remove highlight after 2 seconds
+            setTimeout(() => {
+                targetElement.classList.remove('bg-purple-100', 'ring-2', 'ring-[#9400D3]');
+            }, 2000);
+        }
+    }
+
     return(
         <>
-        {replies.map((reply, index) =>(
-        <div className="card p-4 rounded-md">
+        {sortReplies.map((reply, index) =>(
+        <div className="card p-4 rounded-md"
+        key={reply?.id} id={`${reply.id}`}>
             {/* thread info */}
             
             <div className="gap-2 thread-info flex justify-start items-center">
                 {/* indexing */}
-                <div className="index-box gap-2 flex">
+                <div className="index-box gap-2 flex" 
+                onClick={() => handleSelectReply(reply?.id)}>
                     <i className="bi bi-chevron-double-right text-[#9400D3]"></i>
                     <p>{index+2}</p>
                 </div>
@@ -70,7 +100,7 @@ function ThreadRepliesGallery({replies}){
 
             
             {reply?.parent_reply && (
-                <div className="flex gap-1">
+                <div className="flex gap-1" onClick={() => scrollToReply(reply.parent_reply)}>
                     <i className="bi bi-chevron-double-right text-[#9400D3]"></i>
                     <p>{reply?.parent_reply}</p>
                 </div>
@@ -87,14 +117,17 @@ function Thread(){
     const [thread, setThread] = useState(null)
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
     const [context, setContext] = useState('');
     const [username, setUsername] = useState('');
     const [images, setImages] = useState([]);
     const [imageError, setImageError] = useState('');
     const {user} = useAuth()
-    
-
+    //
+    const [parentReplyId, setParentReplyId] = useState(null)
+    const handleClearParent = () =>{
+        setParentReplyId(null)
+    }
+    //
     const handleImageChange= (e) =>{
         const selectedFiles = Array.from(e.target.files);
         if (selectedFiles.length > 5) {
@@ -115,6 +148,9 @@ function Thread(){
         formData.append('thread',id)
         formData.append('status', 14)
         formData.append('context', context);
+        if (parentReplyId) {
+            formData.append('parent_reply', parentReplyId);
+        }
         images.forEach((file) => {
             formData.append('images', file);
         });
@@ -127,14 +163,21 @@ function Thread(){
             await api.post('/api/replies/', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            // redirect or reset form on success
-        } catch (error) {
-            console.log('error thread:', error);
+
+            toast.success('reply created successfully!', {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+
+        } catch (err) {
+            setError(err)
+            toast.error(`${error}`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
         }
         
     }
-
-
 
     useEffect(()=>{
         async function fetchThreadDetails(){
@@ -190,7 +233,7 @@ function Thread(){
                         <div className="card p-4 rounded-md">
 
                             {/* thread title */}
-                            <div className="thread-title">
+                            <div id="thread-title">
                                 <p>{thread?.title}</p>
                             </div>
 
@@ -226,12 +269,14 @@ function Thread(){
                             <ThreadImagesGallery images={thread?.images}/>
                         </div>
                         {/* reply card      */}
-                        <ThreadRepliesGallery replies={thread?.replies}/>
+                        <ThreadRepliesGallery replies={thread?.replies} onSelectReply={setParentReplyId}/>
                            
                     </div>
 
-                    {thread?.status === 1 ? (
+                    {thread?.status_name === 'Active' ? (
                         <div className="pb-10">
+                            <ToastContainer/>
+
                             <div className="flex gap-2 items-center border-b-2 border-[#9400D3]">
                             <i class="bi bi-pencil-square" id="head-icon"></i>
                                 <p id='header-text'>Write a reply</p>
@@ -262,6 +307,17 @@ function Thread(){
                                             </div>
                                         
                                         {/* context */}
+                                             {parentReplyId && (
+                                                <div className="flex items-center gap-2 font-parent">
+                                                    <SendIcon></SendIcon>
+                                                    <p className="">
+                                                        Replying to #{parentReplyId}
+                                                        <IconButton aria-label="delete" onClick={handleClearParent}>
+                                                            <CancelIcon />
+                                                        </IconButton>
+                                                    </p>
+                                                </div>
+                                            )}
                                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
                                                 <div className="w-full md:w-24 post-label flex-shrink-0">
                                                     <p className="font-bold text-left md:text-right text-[#9400D3]">

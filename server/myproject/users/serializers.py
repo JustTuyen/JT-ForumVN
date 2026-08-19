@@ -55,11 +55,12 @@ class SubscriptionSerializers(serializers.ModelSerializer):
         return value
 
     def validate_plan(self, value):
-        if not value.status or value.status.status_name != 'On Going':
+        if not value.status or value.status.status_name != 'Active':
             raise serializers.ValidationError("This subscription plan is not currently available or active.")
         return value
     
 class UserSerializers(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     class Meta:
             model = User
             fields = [
@@ -71,7 +72,37 @@ class UserSerializers(serializers.ModelSerializer):
                 'created_at','updated_at',
             ]   
             read_only_fields = ['created_at'] 
+    @transaction.atomic
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.status = Status.objects.get(id=1)
+        user.set_password(password)
+        user.save()
 
+        free_plan = Plan.objects.get(id=1)
+        active_status = Status.objects.get(id=11)
+        Subscription.objects.create(
+            user = user,
+            plan = free_plan,
+            status = active_status
+        )
+        return user
+
+    def update(self, instance, validated_data):
+        # 1. Pop password if present in request data
+        password = validated_data.pop('password', None)
+
+        # 2. Update remaining normal fields (username, email, etc.)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # 3. Hash and set password only if a new password was provided
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
 #login
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'username'
@@ -93,11 +124,12 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = User(**validated_data)
-        user.status = Status.objects.get(id=11)
+        user.status = Status.objects.get(id=1)
+        user.set_password(password)
         user.save()
 
-        free_plan = Plan.objects.get(title='Free')
-        active_status = Status.objects.get(id=8)
+        free_plan = Plan.objects.get(id=1)
+        active_status = Status.objects.get(id=11)
         Subscription.objects.create(
             user = user,
             plan = free_plan,

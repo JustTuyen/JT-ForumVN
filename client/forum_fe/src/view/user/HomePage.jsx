@@ -16,7 +16,8 @@ import { useEffect, useState } from "react";
 import api from "../../auth/ApiHandle";
 import { useAuth } from "../../auth/AuthContext";
 import { Link } from "react-router";
-//
+//toatify
+import { ToastContainer, toast } from 'react-toastify';
 
 function Home(){
 
@@ -94,10 +95,16 @@ function Home(){
             await api.post('/api/threads/', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            // redirect or reset form on success
+            toast.success('Thread created successfully!', {
+                position: 'top-right',
+                autoClose: 3000,
+            });
         } catch (error) {
             setSubmitError('Failed to create thread.');
-            console.log('error thread:', error);
+            toast.error(`${error}`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
         }
 
     } 
@@ -250,6 +257,7 @@ function Home(){
                     </div>
 
                     {/* write a thread */}
+                    <ToastContainer/>
                     <div className="w-[80%] pb-15" id="reply-box">
                         <div className="flex gap-2 items-center border-b-2 border-[#9400D3]">
                            <i class="bi bi-pencil-square" id="head-icon"></i>
@@ -344,15 +352,15 @@ function Home(){
                                                 </p>
                                             </div>
                                             <div className="w-full flex-1">
-                                                <select name="" id="" 
-                                                className="w-full post-thread bg-white rounded-md px-3 py-2 
-                                                focus:outline-none focus:ring-2 
-                                                border text-[#9400D3] border-[#9400D3]"
-                                                value={username}
-                                                onChange={(e) => setUsername(e.target.value)}>
-                                                    <option value="Anonymous Melon" >Anonymous</option>
-                                                    <option value={user?.username}>{user?.username}</option>
-                                                </select>
+                                               <select name="" id="" 
+                                                    className="w-full post-thread bg-white rounded-md px-3 py-2 
+                                                    focus:outline-none focus:ring-2 
+                                                    border text-[#9400D3] border-[#9400D3]"
+                                                    value={username}
+                                                    onChange={(e) => setUsername(e.target.value)}>
+                                                        <option value="Anonymous Melon" >Anonymous</option>
+                                                        <option value={user?.username}>{user?.username}</option>
+                                                    </select>
                                             </div>
                                         </div>
 

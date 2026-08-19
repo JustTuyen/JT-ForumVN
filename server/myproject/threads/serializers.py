@@ -95,7 +95,7 @@ class CreateThreadSerializer(serializers.ModelSerializer):
         return value
 
     def validate_category(self, value):
-        if not value.status or value.status.status_name != 'Opened':
+        if not value.status or value.status.status_name != 'Active':
             raise serializers.ValidationError("This category is not active.")
         return value
     
@@ -184,7 +184,7 @@ class ThreadDataModSerializer(serializers.ModelSerializer):
             'id', 'name', 'title', 'context', 
             'view_count','like_count',
             'expire_at', 'reply_limit',
-            'images',
+            'images','replies',
             'category_name',
             'user_username',
             'status_name',
@@ -211,7 +211,7 @@ class UserPublicThreadSerializer(serializers.ModelSerializer):
             fields = [
                 'id', 'name', 'title', 'context', 
                 'view_count','like_count',
-                'expire_at', 'reply_limit',
+                'expire_at',
                 'images',
                 'category',
                 'category_name',
@@ -269,7 +269,7 @@ class CreateReplySerializer(serializers.ModelSerializer):
         return value
 
     def validate_thread(self, value):
-        if not value.status or value.status.status_name != 'On Going':
+        if not value.status or value.status.status_name != 'Active':
             raise serializers.ValidationError("This threads is not active.")
         return value
     

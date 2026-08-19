@@ -4,17 +4,19 @@
 
 }
 
-.thread-title p{
+#thread-title p{
     text-align: justify;
     text-justify: inter-word;
-}
-
-
-.thread-title{
-    color: #9400D3;
+    color: black;
     font-size: 32px;
     font-weight: bold;
-}
+} 
+
+
+/* .thread-title{
+    color: #9400D3;
+    font-weight: bold;
+} */
 
 .thread-info{
     border-bottom: #9400D3 1px solid;
@@ -120,3 +122,9 @@
         object-position: center;
     }
 }
+
+.font-parent{
+    font-size: 14px;
+    color: #9400D3;
+}
+

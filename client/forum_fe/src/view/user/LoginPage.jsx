@@ -50,7 +50,7 @@ function Login(){
                                 {error && <p style={{ color: 'red' }}>{error}</p>}
                                 <div className="w-full p-2">
                                     <input 
-                                    placeholder="Enter your email"
+                                    placeholder="Enter your username"
                                     type="text" 
                                     className="w-full post-thread
                                     bg-white rounded-md px-3 py-2 
@@ -62,7 +62,7 @@ function Login(){
                                 </div>
                                 <div className="w-full p-2">
                                     <input 
-                                    placeholder="Enter your email"
+                                    placeholder="Enter your password"
                                     type="password" 
                                     className="w-full post-thread
                                     bg-white rounded-md px-3 py-2 

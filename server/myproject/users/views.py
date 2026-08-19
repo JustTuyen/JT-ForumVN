@@ -4,6 +4,7 @@ from .models import Plan, User, Subscription
 from .serializers import PLanSerializers
 from .serializers import SubscriptionSerializers
 from .serializers import (
+    UserSerializers,
     RegisterSerializer, EmailTokenObtainPairSerializer,
     UserDataAdminSerializer,UserUpdateAdminSerializer,
     UserDataModeratorSerializer, UserUpdateModeratorSerializer,
@@ -64,7 +65,7 @@ class EmailTokenObtainPairView(TokenObtainPairView):
 User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.select_related('status','profile_image').all()
-    # serializer_class = UserDataForAdminSerializer
+    # serializer_class = UserSerializers
     # permission_classes = [permissions.AllowAny]
 
     def get_serializer_class(self):

@@ -1,4 +1,4 @@
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Prefetch,F
 from rest_framework import viewsets, permissions, status
 from .models import Category, Thread, Reply
 from .serializers import CategorySerializer
@@ -56,7 +56,12 @@ class IsUserOrBoss(permissions.BasePermission):
 
 logger = logging.getLogger(__name__)
 class ThreadViewSet(viewsets.ModelViewSet):
-    queryset = Thread.objects.select_related('user', 'category', 'status').prefetch_related('images').all()
+    queryset = Thread.objects.select_related('user', 'category', 'status').prefetch_related('images',
+        Prefetch(
+            'replies',
+            queryset=Reply.objects.order_by('-created_at')
+        )).all()
+    
     # serializer_class = UserPublicThreadSerializer   
     # permission_classes = [IsAdmin]
 
@@ -68,19 +73,13 @@ class ThreadViewSet(viewsets.ModelViewSet):
             sender = getattr(self.request, 'user', None)
             if not sender or not sender.is_authenticated:
                 return UserPublicThreadSerializer
-            try:
-                target = self.get_object()
-            except Exception:
-                return ThreadUpdateUserSerializer
-
-            if target.user == sender:
-                return ThreadUpdateUserSerializer
-
             if getattr(sender, 'role', None) == User.Role.ADMIN:
                 return ThreadUpdateAdminSerializer
             if getattr(sender, 'role', None) == User.Role.MODERATOR:
                 return ThreadDataModSerializer
-
+                
+            return ThreadUpdateUserSerializer
+        
         if self.action == 'retrieve':
             sender = getattr(self.request, 'user', None)
             if sender and sender.is_authenticated:
@@ -91,7 +90,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
                     return ThreadDataModSerializer
             return UserPublicThreadSerializer
             #both for none login and normal user
-         
+        
         return UserPublicThreadSerializer
 
     def get_permissions(self):
@@ -114,13 +113,20 @@ class ThreadViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [IsAdmin()]
 
-    #making sure thread status is updated when expire day is reached
     def get_queryset(self):
-        Thread.objects.filter(status_id=1, expire_at__lte=timezone.now()).update(status_id=2)
-        return Thread.objects.select_related('user', 'category', 'status').prefetch_related('images').all()
+        Thread.objects.filter(status_id=4, expire_at__lte=timezone.now()).update(status_id=6)
+        return super().get_queryset()
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        Thread.objects.filter(pk=instance.pk).update(view_count=F('view_count') + 1)
+        instance.refresh_from_db()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     
     #searching for user-threads
-    @action(detail=False, methods=['get','put'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def my_threads(self, request):
         #"""GET /api/threads/my_threads/ — the logged-in user's own threads."""
         threads = self.get_queryset().filter(user=request.user)
@@ -140,24 +146,30 @@ class ThreadViewSet(viewsets.ModelViewSet):
         )
 
         #GET /api/threads/listings/?ordering=title
-        letter = request.query_params.get('letter', '').strip()
-        if letter:
-            if letter == '#':
-                threads = threads.filter(title__iregex=r'^[^a-zA-Z]')
-            else:
-                threads = threads.filter(title__istartswith=letter[0])
+        # letter = request.query_params.get('letter', '').strip()
+        # if letter:
+        #     if letter == '#':
+        #         threads = threads.filter(title__iregex=r'^[^a-zA-Z]')
+        #     else:
+        #         threads = threads.filter(title__istartswith=letter[0])
+        
+
 
         category_id = request.query_params.get('category')
         if category_id:
             threads = threads.filter(category_id=category_id)
 
-        status_id = request.query_params.get('status')
-        if status_id:
-            threads = threads.filter(status_id=status_id)
+        # status_id = request.query_params.get('status')
+        # if status_id:
+        #     threads = threads.filter(status_id=status_id)
 
-        ordering = request.query_params.get('ordering', '-created_at')
-        if ordering.lstrip('-') in ['created_at', 'view_count', 'like_count']:
-            threads = threads.order_by(ordering)
+        if request.query_params.get('shuffle') == 'true':
+            threads = threads.order_by('?')
+        else:
+            ordering = request.query_params.get('ordering', '-created_at')
+            if ordering.lstrip('-') in ['created_at', 'view_count', 'like_count']:
+                threads = threads.order_by(ordering)
+
 
         page = self.paginate_queryset(threads)
         if page is not None:
@@ -166,6 +178,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
         serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
         return Response(serializer.data)
+
 
     #searching through key words
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
@@ -191,7 +204,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
         if status_id:
             threads = threads.filter(status_id=status_id)
 
-        ordering = request.query_params.get('ordering', '-created_at')
+        ordering = request.query_params.get('ordering', 'created_at')
         if ordering.lstrip('-') in ['created_at', 'view_count', 'like_count']:
             threads = threads.order_by(ordering)
 
@@ -212,7 +225,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
             .prefetch_related('images')
             .filter(status_id = 2)
             .annotate(reply_count=Count('replies', distinct=True))
-            .order_by('-view_count')[:20]
+            .order_by('-view_count')[:5]
         )
 
         serializer = ListingThreadSerializer(threads, many=True, context={'request': request})

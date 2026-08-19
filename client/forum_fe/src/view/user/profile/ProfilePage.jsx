@@ -4,16 +4,23 @@ import Navbar from "../../../component/Navbar"
 import { Link } from "react-router"
 import { Button } from "@mui/material"
 import '../../css/Profile.css'
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import SendIcon from '@mui/icons-material/Send';
 
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 //images
 import defaultImg from '../../../assets/profileDefault.jpg'
+import { useAuth } from "../../../auth/AuthContext"
 
 
 //account checking section
 function ProfileOverview(){
+    const {user, loading} = useAuth()
+    if (loading) return <p>Loading profile...</p>;
+    if (!user) return <p>You need to be logged in to view this page.</p>;
+
+
+
     return(
         <>
         <div className="py-2 min-h-[60vh]">
@@ -37,7 +44,7 @@ function ProfileOverview(){
                         <input 
                             id="username"
                             type="text" 
-                            disabled
+                            disabled value={user.username}
                             placeholder="UserName"
                             className="w-full bg-white rounded-md px-3 py-2 border 
                             text-[#9400D3] border-[#9400D3]" 
@@ -54,7 +61,7 @@ function ProfileOverview(){
                         <input 
                             id="email"
                             type="email" 
-                            disabled
+                            disabled value={user.email}
                             placeholder="email@example.com"
                             className="w-full bg-white rounded-md px-3 py-2 border 
                             text-[#9400D3] border-[#9400D3]" 
@@ -71,7 +78,7 @@ function ProfileOverview(){
                         <textarea 
                             id="description"
                             rows={3}
-                            disabled
+                            disabled value={user.description}
                             placeholder="User description"
                             className="w-full bg-white rounded-md px-3 py-2 border 
                             text-[#9400D3] border-[#9400D3]" 
@@ -89,7 +96,7 @@ function ProfileOverview(){
                         <input 
                             id="gender"
                             type="text" 
-                            disabled
+                            disabled value={user.gender}
                             placeholder="User gender"
                             className="w-full bg-white rounded-md px-3 py-2 border 
                             text-[#9400D3] border-[#9400D3] " 
@@ -104,7 +111,7 @@ function ProfileOverview(){
                         <input 
                         id="birthday"
                         type="date" 
-                        disabled
+                        disabled value={user.birth_date}
                         className="w-full bg-white rounded-md px-3 py-2 border 
                             text-[#9400D3] border-[#9400D3]" 
                     />

@@ -4,12 +4,15 @@ import Footer from "../../component/Footer";
 import SideButton from "../../component/SideButton";
 import { Link } from "react-router";
 import Profile01 from '../../assets/profile01.png'
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import forumThumbnail from '../../assets/profileDefault.jpg'
 import {Card, CardActionArea} from "@mui/material";
 import '../css/User.css'
+import api from "../../auth/ApiHandle";
 
 function ThreadOverView(){
+    
+
     return(
         <>
         <div className="min-h-[60vh]">
