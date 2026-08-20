@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/', include('threads.urls')),
     path('api/', include('users.urls')),
     path('api/token/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/', include('moderators.urls'))
     # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # path('api/logout/', LogoutViewSet.as_view(), name='logout'),
 ]

@@ -87,10 +87,10 @@ function Home(){
             formData.append('images', file);
         });
 
-        console.log("data: ", Array.from(formData.entries()));
-        for (let [key, value] of formData.entries()) {
-            console.log(`${key}:`, value);
-        }
+        // console.log("data: ", Array.from(formData.entries()));
+        // for (let [key, value] of formData.entries()) {
+        //     console.log(`${key}:`, value);
+        // }
         try {
             await api.post('/api/threads/', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
@@ -360,7 +360,7 @@ function Home(){
                                                     onChange={(e) => setUsername(e.target.value)}>
                                                         <option value="Anonymous Melon" >Anonymous</option>
                                                         <option value={user?.username}>{user?.username}</option>
-                                                    </select>
+                                                </select>
                                             </div>
                                         </div>
 

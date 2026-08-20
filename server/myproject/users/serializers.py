@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 #outside model
 from cores.models import Status
 from threads.models import Thread, Reply, Image
-
+from moderators.models import Bookmark
 #literally dto :P
 class PLanSerializers(serializers.ModelSerializer):
 
@@ -212,7 +212,6 @@ class UserUpdateAdminSerializer(serializers.ModelSerializer):
                 instance.save(update_fields=['password'])
             return instance
 
-
 #Moderator
 class UserDataModeratorSerializer(serializers.ModelSerializer):
     threads = MiniThreadSerializer(many = True, read_only = True)
@@ -288,21 +287,33 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
         return value
 
 class UserUpdatePasswordSerializer(serializers.ModelSerializer):
-
-    password = serializers.CharField(write_only=True, required=False, validators=[validate_password])
+    old_password = serializers.CharField(write_only=True, required=True)
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     class Meta:
             model = User
             fields = [
-                'id',
+                'old_password',
                 'password',
             ]
-            read_only_fields = ['id']
-    def validate_user(self,value):
-        if not value.status or value.status.status_name != 'Active':
-            raise  serializers.ValidationError("This user account is  not active.") 
+            
+    def validate_old_password(self, value):
+        user = self.instance
+        if user and not user.check_password(value):
+            raise serializers.ValidationError("Current password is incorrect.")
         return value
     
+    def validate(self, attrs):
+        user = self.instance
+        if user and (not user.status or user.status.status_name != 'Active'):
+            raise serializers.ValidationError("This account is not active.")
+
+        if attrs.get('old_password') == attrs.get('password'):
+            raise serializers.ValidationError({"password": "New password cannot be identical to current password."})
+        
+        return attrs
+    
     def update(self, instance, validated_data):
+        validated_data.pop('old_password', None)
         password = validated_data.pop('password', None)
         instance = super().update(instance, validated_data)
         if password:
@@ -316,3 +327,15 @@ class UserUpdateImageSerializer(serializers.Serializer):
         if not value.status or value.status.status_name != 'Active':
             raise  serializers.ValidationError("This user account is  not active.") 
         return value
+
+class UserBookmarkSerializer(serializers.Serializer):
+    images = MiniImageSerializer(read_only=True, many=True)
+    threads = MiniThreadSerializer(read_only=True, many=True)
+    class Meta:
+        model = Bookmark
+        fields = [
+            'id', 'threads','note','created_at','updated_at'
+        ]
+        read_only_fields = ['id']
+
+    

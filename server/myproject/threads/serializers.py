@@ -240,6 +240,7 @@ class ListingThreadSerializer(serializers.ModelSerializer):
         fields = [
             'id','context',
             'title',
+            'status',
             'status_name',
             'reply_count','images'
         ]

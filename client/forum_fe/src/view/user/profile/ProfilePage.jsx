@@ -4,23 +4,149 @@ import Navbar from "../../../component/Navbar"
 import { Link } from "react-router"
 import { Button } from "@mui/material"
 import '../../css/Profile.css'
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import SendIcon from '@mui/icons-material/Send';
-
+//
+import forumThumbnail from '../../../assets/profileDefault.jpg'
+import {ToastContainer, toast } from 'react-toastify'
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 //images
 import defaultImg from '../../../assets/profileDefault.jpg'
 import { useAuth } from "../../../auth/AuthContext"
-
+import api from "../../../auth/ApiHandle"
+//
+import * as React from 'react';
+import Backdrop from '@mui/material/Backdrop';
+import Box from '@mui/material/Box';
+import Modal from '@mui/material/Modal';
+import Fade from '@mui/material/Fade';
+import {modalStyle} from './style/Modals'
 
 //account checking section
 function ProfileOverview(){
+
     const {user, loading} = useAuth()
-    if (loading) return <p>Loading profile...</p>;
-    if (!user) return <p>You need to be logged in to view this page.</p>;
+    if(!user){
+        toast.error('You must login to use this function!');
+        
+    }
+   
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
 
+     const [open1, setOpen1] = React.useState(false);
+    const handleOpen1 = () => setOpen1(true);
+    const handleClose1 = () => setOpen1(false);
+    //
+    const [email, setEmail] = useState('')
+    const [username, setUsername] = useState('')
+    const [description, setDescription] = useState('')
+    const [gender, setGender] = useState('')
+    const [birthday, setBirthday] = useState('')
 
+    //new psswrds
+    const [oldPassword, setOldPassword] = useState('')
+    const [newPassword, setNewPassword] = useState('')
+    const [checkPassword, setCheckPassword] = useState('')
+    //
+    useEffect(()=>{
+        if(user){
+            setEmail(user.email || '');
+            setUsername(user.username || '');
+            setDescription(user.description || '');
+            setGender(user.gender || '');
+            setBirthday(user.birth_date || '');
+        }
+    }, [user])
 
+    const updateProfile = async(e) =>{
+        e.preventDefault()
+        if(!user) return
+
+        const formData = new FormData()
+        formData.append('email', email)
+        formData.append('username', username)
+        formData.append('description', description)
+        formData.append('gender', gender)
+        formData.append('birth_date', birthday)
+
+        console.log("data: ", Array.from(formData.entries()));
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}:`, value);
+        }
+
+        try{
+            await api.patch(`/api/users/profile/`, formData,{
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+
+            toast.success('profile update successfully!', {
+                position: 'top-right',
+                autoClose: 1000,
+            });
+
+            setTimeout(() => {
+                window.location.reload(); // Added () execution parentheses
+            }, 1500);
+
+        } catch (error) {
+            toast.error(`${error}`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    }
+
+    const updatePassword = async(e) =>{
+        e.preventDefault()
+        if(!user) return
+        
+        if(newPassword!=checkPassword){
+            toast.error('new password is mismatched!', {
+                position: 'top-right',
+                autoClose: 1000,
+            });
+
+            return
+        }
+
+        if(oldPassword!=newPassword){
+            toast.error('old and new password cannot be the same!', {
+                position: 'top-right',
+                autoClose: 1000,
+            });
+
+            return
+        }
+
+        try{
+            await api.patch(`/api/users/${user.id}/password/`,{
+                old_password: oldPassword,
+                password: newPassword
+            }, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            toast.success('Updated password successfully!', {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+
+            setTimeout(() => {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = '/login'; 
+            }, 4000);
+
+        } catch(error){
+             toast.error(`${error}!`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    } 
+    if (loading) return <p>Loading...</p>;
     return(
         <>
         <div className="py-2 min-h-[60vh]">
@@ -30,7 +156,7 @@ function ProfileOverview(){
                 </div>
                 <div className="flex flex-col items-center badge-tab">
                     <WorkspacePremiumIcon/>
-                    <p>101</p>
+                    <p>{user?.current_point}</p>
                 </div>
             </div>
 
@@ -121,15 +247,197 @@ function ProfileOverview(){
                 <div className="flex flex-col pt-4
                 md:flex-row justify-end gap-2
                 md:gap-4 py-1">
-                    <Button variant="outlined" className="shadow-md" id='profile-btn-1'>
-                        Update profile
+                    <Button variant="outlined" className="shadow-md" id='profile-btn-1'
+                    onClick={handleOpen}>Update profile
                     </Button>
-                    <Button variant="outlined" className="shadow-md" id='profile-btn-2'>
-                        Update profile
+                    
+                    <Button variant="outlined" className="shadow-md" 
+                    id='profile-btn-2'
+                    onClick={handleOpen1}> 
+                        Update password
                     </Button>
                 </div>
 
             </div>
+        </div>
+
+        <div>
+        <ToastContainer/>
+        <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={open}
+            onClose={handleClose}
+            closeAfterTransition
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+            backdrop: {
+                timeout: 500,
+            },
+            }}
+        >
+            <Fade in={open}>
+                <Box  sx={modalStyle}>
+                    <div className="">
+                        <p>Update profile</p>
+                    </div>
+                    <form action="" className="p-4"  onSubmit={updateProfile}>
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
+                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right 
+                            text-[#9400D3] flex-shrink-0">
+                                Email:
+                            </label>
+                            <div className="w-full flex-1">
+                                <input 
+                                    type="text" 
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full bg-white rounded-md px-3 py-2 border 
+                                    text-[#9400D3] border-[#9400D3]" 
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
+                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                                Username:
+                            </label>
+                            <div className="w-full flex-1">
+                                <input 
+                                    type="text" 
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="w-full bg-white rounded-md px-3 py-2 border 
+                                    text-[#9400D3] border-[#9400D3]" 
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
+                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                                Description:
+                            </label>
+                            <div className="w-full flex-1">
+                                <textarea 
+                                rows={3}
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                className="w-full bg-white rounded-md px-3 py-2 border 
+                                text-[#9400D3] border-[#9400D3]" 
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
+                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                                Gender:
+                            </label>
+                            <div className="w-full flex-1">
+                                <select name="" id="" value={gender}
+                                onChange={(e) => setGender(e.target.value)}
+                                className="w-full bg-white rounded-md px-3 py-2 border 
+                                text-[#9400D3] border-[#9400D3]">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
+                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                                Birthday:
+                            </label>
+                            <div className="w-full flex-1">
+                               <input 
+                                type="text" 
+                                value={birthday}
+                                onChange={(e) => setBirthday(e.target.value)}
+                                className="w-full bg-white rounded-md px-3 py-2 border 
+                                text-[#9400D3] border-[#9400D3]" 
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end p-2">
+                            <Button type="submit" id='update-btn'>
+                                Update
+                            </Button>
+                        </div>
+                    </form>
+                </Box>
+            </Fade>
+        </Modal>
+        </div>
+
+        <div>
+            <ToastContainer/>
+            <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={open1}
+            onClose={handleClose1}
+            closeAfterTransition
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+            backdrop: {
+                timeout: 500,
+            },
+            }}
+        >
+                <Fade in={open1}>
+                    <Box  sx={modalStyle}>
+                        <div className="">
+                            <p>Update Password</p>
+                        </div>
+                        <form action="" className="p-4"  onSubmit={updatePassword}>
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
+                                <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right 
+                                text-[#9400D3] flex-shrink-0">
+                                    Current Password:
+                                </label>
+                                <div className="w-full flex-1">
+                                    <input 
+                                        type="password" 
+                                        placeholder="Enter your old password"
+                                        onChange={(e) => setOldPassword(e.target.value)}
+                                        className="w-full bg-white rounded-md px-3 py-2 border 
+                                        text-[#9400D3] border-[#9400D3]" 
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
+                                <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                                    New Password:
+                                </label>
+                                <div className="w-full flex-1">
+                                    <input 
+                                        type="password" 
+                                        placeholder="Enter new password again"
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="w-full bg-white rounded-md px-3 py-2 border 
+                                        text-[#9400D3] border-[#9400D3]" 
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
+                                <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                                    Enter Again:
+                                </label>
+                                <div className="w-full flex-1">
+                                    <input 
+                                        type="password" 
+                                        placeholder="Enter your new password"
+                                        onChange={(e) => setCheckPassword(e.target.value)}
+                                        className="w-full bg-white rounded-md px-3 py-2 border 
+                                        text-[#9400D3] border-[#9400D3]" 
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex justify-end p-2">
+                                <Button type="submit" id='update-btn'>
+                                    Update
+                                </Button>
+                            </div>
+                        </form>
+                    </Box>
+                </Fade>
+            </Modal>
         </div>
         </>
     )
@@ -137,27 +445,114 @@ function ProfileOverview(){
 
 //thread checking section
 function ThreadOverview(){
+    const [threads, setThread] = useState([])
+    const {user,loading} = useAuth()
+    if(!user){
+        toast.error('You must login to use this function!');
+        
+    }
+    const [selectValue, setSelectValue] = useState('-created_at');
+    const [ordering, setOrdering] = useState('-created_at');
+    const [statusSelectValue, setStatusSelectValue] = useState('all');
+
+    const fetchThread = useCallback(async (
+        sortParam = ordering, 
+        statusParam = statusSelectValue
+    ) =>{
+        try{
+            const params = new URLSearchParams()
+            if(statusParam && statusParam !== 'all'){
+                params.append('status', statusParam)
+            }
+            params.append('ordering', sortParam)
+            const {data} = await api.get(`/api/threads/my_threads/?${params.toString()}`)
+            setThread(data.results ?? data)
+            
+            console.log('data', data);
+            console.log('param1:', sortParam)
+            console.log('param2:', statusParam)
+
+        } catch(error){
+            console.log('error fetching ur threads', error)
+            toast.error(`${error}`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    }, [ordering, statusSelectValue])
+
+    useEffect(()=>{
+        if(!loading){
+            if(!user){
+                toast.error('You must login to use this function!');
+                window.location.href = '/login';
+            } else {
+                fetchThread();
+            }
+        }
+    },[user, loading])
+
+    
+
+    const handleStatusSelectChange = (newStatus) => {
+        setStatusSelectValue(newStatus);
+        fetchThread(ordering, newStatus);
+    };
+    
+    if (loading) return <p>Loading...</p>;
+    if (!user) return null;
+
+    const handleSortChange = (newSort) => {
+        setOrdering(newSort);
+        fetchThread(newSort, statusSelectValue);
+    };
+
+    const handleSelectChange=(value)=>{
+        setSelectValue(value)
+        if(value.startsWith('status:')){
+            const statusId = value.split(':')[1]
+            setStatusSelectValue(statusId)
+        } else {
+            handleSortChange(value)
+        }
+    }
+
+    if (loading) return <p>Loading...</p>;
+
     return(
         <>
         <div className="py-2 min-h-[60vh]">
             <div className="flex justify-end gap-2 sorting">
                 <p>Sorting:</p>
-                <select name="" id="">
-                    <option value="">A-z</option>
-                    <option value="">New</option>
-                    <option value="">Archived</option>
-                    <option value="">Most view</option>
-                    <option value="">Most Like</option>
+                <select value={selectValue} onChange={(e) => handleSelectChange(e.target.value)}>
+                    <option value="-title">A-Z</option>
+                    <option value="-created_at">New</option>
+                    <option value="-view_count">Most Viewed</option>
+                    <option value="-like_count">Most Liked</option>
+                </select>
+                <select value={statusSelectValue} onChange={(e) => handleStatusSelectChange(e.target.value)}>
+                    <option value="all">All Statuses</option>
+                    <option value="1">On going</option>
+                    <option value="2">Archived</option>
+                    <option value="3">Report</option>
                 </select>
             </div>
 
             <div className="py-2">
                 <div className="grid grid-cols-1 gap-4">
+                    {threads.map((thread) =>(
+
+                    
                     <div className="card shadow-md">
                         <div className="flex flex-row gap-4">
-                            <img src={defaultImg} alt="" id='thread-thumbnail'/>
+                            <img 
+                            src={thread.images?.find((img)=>
+                            img.is_thumbnail)?.file || forumThumbnail} 
+                            alt="[object Object]" id="thumbnail-img"
+                            className="shadow-sm rounded-md"
+                            id='thread-thumbnail'/>
                             <div className="thread-title">
-                                <p>Arknights Endfield might be getting heat with IS , rouge like and somthing, something </p>
+                                <p>{thread.title}</p>
                             </div>
                             
                         </div>
@@ -171,25 +566,28 @@ function ThreadOverview(){
                                 </p>
                                 <div className="flex gap-2">
                                     <div className="card-info info-archive">
-                                        archived
+                                        {thread.status_name}
                                     </div>
                                     {/* display the amount of reply */}
                                     <div className="card-info info-reply gap-1">
                                         <i class="bi bi-chat-dots"></i>
-                                        view
+                                        {thread.reply_count}
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex flex-row justify-end gap-2">
-                                <Button variant="outlined" className="shadow-md" id='thread-btn-1'>
-                                    View
-                                </Button>
+                            <div className="flex flex-row justify-end items-end gap-2">
+                                <Link to={`/threads/${thread.id}`}>
+                                    <Button variant="outlined" className="shadow-md" id='thread-btn-1'>
+                                        View
+                                    </Button>
+                                </Link>
                                 <Button variant="delete" className="shadow-md" id='thread-btn-2'>
                                     Delete
                                 </Button>
                             </div>
                         </div>
                     </div>
+                    ))}
                 </div>
             </div>
         </div>
@@ -260,6 +658,83 @@ function BookMarks(){
 }
 
 function Posting(){
+    const [categories, setCategories] = useState([]);
+    const [title, setTitle] = useState('');
+    const [username, setUsername] = useState('');
+    const [context, setContext] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('default');
+    const [images, setImages] = useState([]);
+    const [imageError, setImageError] = useState('');
+    const [submitError, setSubmitError] = useState('');
+    const {user, loading} = useAuth()
+
+    useEffect(()=>{
+        async function fetchCategories() {
+            try {
+                const { data } = await api.get('/api/categories/');
+                setCategories(data.results ?? data);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        fetchCategories()
+    }, [])
+
+    const handleImageChange= (e) =>{
+        const selectedFiles = Array.from(e.target.files);
+        if (selectedFiles.length > 5) {
+            setImageError('Only max 5 images, sorry.');
+            setImages(selectedFiles.slice(0, 5));
+        } else {
+            setImageError('');
+            setImages(selectedFiles);
+        }
+    }
+
+    const createThread = async (e) => {
+        e.preventDefault();
+        if (!user) return;
+        if (selectedCategory === 'default') {
+            setSubmitError('Please select a category.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('name', username);
+        formData.append('user', user.id)
+        formData.append('context', context);
+        formData.append('category', selectedCategory);
+        formData.append('status', 1)
+        images.forEach((file) => {
+            formData.append('images', file);
+        });
+
+        console.log("data: ", Array.from(formData.entries()));
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}:`, value);
+        }
+        try {
+            await api.post('/api/threads/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            toast.success('Thread created successfully!', {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        } catch (error) {
+            setSubmitError('Failed to create thread.');
+            toast.error(`${error}`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+
+    } 
+
+    
+    if (loading) return <p>Loading...</p>;
+
     return(
         <>
          <div className="py-2 min-h-[60vh]">
@@ -289,6 +764,7 @@ function Posting(){
             </div>
 
                         {/* thread post board */}
+            <ToastContainer/>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
                 {/* pointing system */}
                 <div className="col-span-1">
@@ -323,105 +799,119 @@ function Posting(){
                 </div>
 
                 <div className="col-span-3">
+                    <form action="" onSubmit={createThread}>
                     {/* title */}
-                    <div className="p-2">
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                            {/* Label: Takes auto width on mobile, fixed width on desktop */}
-                            <div className="w-full md:w-24 post-label flex-shrink-0">
-                                <p className="font-bold text-left md:text-right text-[#9400D3]">
-                                Title:
-                                </p>
+                        <div className="p-2">
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
+                                {/* Label: Takes auto width on mobile, fixed width on desktop */}
+                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                    <p className="font-bold text-left md:text-right text-[#9400D3]">
+                                    Title:
+                                    </p>
+                                </div>
+
+                                {/* Input: Takes remaining width automatically on desktop */}
+                                <div className="w-full flex-1">
+                                    <input 
+                                    placeholder="Enter thread title"
+                                    type="text" 
+                                    className="w-full post-thread bg-white rounded-md px-3 py-2 
+                                    focus:outline-none focus:ring-2 
+                                    border text-[#9400D3] border-[#9400D3]" 
+                                    id="" 
+                                    value={title} onChange={(e) => setTitle(e.target.value)}
+                                    />
+                                </div>
                             </div>
 
-                            {/* Input: Takes remaining width automatically on desktop */}
-                            <div className="w-full flex-1">
-                                <input 
-                                placeholder="Enter thread title"
-                                type="text" 
-                                className="w-full post-thread bg-white rounded-md px-3 py-2 
-                                focus:outline-none focus:ring-2 
-                                border text-[#9400D3] border-[#9400D3]" 
-                                id="" 
-                                />
+                            {/* name */}
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
+                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                    <p className="font-bold text-left md:text-right text-[#9400D3]">
+                                    Name:
+                                    </p>
+                                </div>
+                                <div className="w-full flex-1">
+                                    <select name="" id="" 
+                                        className="w-full post-thread bg-white rounded-md px-3 py-2 
+                                        focus:outline-none focus:ring-2 
+                                        border text-[#9400D3] border-[#9400D3]"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}>
+                                            <option value="Anonymous Melon" >Anonymous</option>
+                                            <option value={user?.username}>{user?.username}</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* name */}
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                            <div className="w-full md:w-24 post-label flex-shrink-0">
-                                <p className="font-bold text-left md:text-right text-[#9400D3]">
-                                Name:
-                                </p>
+                            {/* category */}
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
+                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                    <p className="font-bold text-left md:text-right text-[#9400D3]">
+                                    Category:
+                                    </p>
+                                </div>
+                                <div className="w-full flex-1">
+                                    <select name=""
+                                    id="" className="w-full post-thread bg-white rounded-md px-3 py-2 
+                                    focus:outline-none focus:ring-2 
+                                    border text-[#9400D3] border-[#9400D3]"
+                                    value={selectedCategory}
+                                    onChange={(e) => setSelectedCategory(e.target.value)}>
+                                        <option value="default" selected>Pick a category</option>
+                                        {categories.map((category) => (
+                                            <option key={category.id} value={category.id}>{category.title}</option>
+                                        ))} 
+                                    </select>
+                                </div>
                             </div>
-                            <div className="w-full flex-1">
-                                <select name="" id="" 
-                                className="w-full post-thread bg-white rounded-md px-3 py-2 
-                                focus:outline-none focus:ring-2 
-                                border text-[#9400D3] border-[#9400D3]">
-                                    <option value="default" selected>Anonymous</option>
-                                    <option value="default">User name</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        {/* category */}
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                            <div className="w-full md:w-24 post-label flex-shrink-0">
-                                <p className="font-bold text-left md:text-right text-[#9400D3]">
-                                Category:
-                                </p>
+                            {/* context */}
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
+                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                    <p className="font-bold text-left md:text-right text-[#9400D3]">
+                                    Content:
+                                    </p>
+                                </div>
+                                <div className="w-full flex-1">
+                                    <textarea name="" id="" placeholder="Enter your thread context"
+                                    className="w-full post-thread bg-white rounded-md px-3 py-2 
+                                    focus:outline-none focus:ring-2 
+                                    border text-[#9400D3] border-[#9400D3]"
+                                    value={context} onChange={(e) => setContext(e.target.value)}></textarea>
+                                </div>
                             </div>
-                            <div className="w-full flex-1">
-                                <select name="" id="" className="w-full post-thread bg-white rounded-md px-3 py-2 
-                                focus:outline-none focus:ring-2 
-                                border text-[#9400D3] border-[#9400D3]">
-                                    <option value="default" selected>Pick a category</option>
-                                    <option value="default">Category 1</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        {/* context */}
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                            <div className="w-full md:w-24 post-label flex-shrink-0">
-                                <p className="font-bold text-left md:text-right text-[#9400D3]">
-                                Content:
-                                </p>
+                            {/* file */}
+                            {imageError && <p className="text-red-500 text-sm mt-1">{imageError}</p>}
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
+                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                    <p className="font-bold text-left md:text-right text-[#9400D3]">
+                                    Images:
+                                    </p>
+                                </div>
+                                <div className="w-full flex-1">
+                                    <input placeholder="Enter thread title"
+                                    type="file" className="w-full post-thread bg-white rounded-md px-3 py-2 
+                                    focus:outline-none focus:ring-2 
+                                    border text-[#9400D3] border-[#9400D3]" 
+                                    onChange={handleImageChange}
+                                    id="" />
+                                </div>
                             </div>
-                            <div className="w-full flex-1">
-                                <textarea name="" id="" placeholder="Enter your thread context"
-                                className="w-full post-thread bg-white rounded-md px-3 py-2 
-                                focus:outline-none focus:ring-2 
-                                border text-[#9400D3] border-[#9400D3]"></textarea>
-                            </div>
-                        </div>
 
-                        {/* file */}
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                            <div className="w-full md:w-24 post-label flex-shrink-0">
-                                <p className="font-bold text-left md:text-right text-[#9400D3]">
-                                Images:
-                                </p>
-                            </div>
-                            <div className="w-full flex-1">
-                                <input placeholder="Enter thread title"
-                                type="file" className="w-full post-thread bg-white rounded-md px-3 py-2 
-                                focus:outline-none focus:ring-2 
-                                border text-[#9400D3] border-[#9400D3]" 
-                                id="" />
+                            {/* Buttons */}
+                            <div className="flex justify-end">
+                                {submitError && <p className="text-red-500">{submitError}</p>}
+                                <Button 
+                                className="shadow-lg hover:shadow-2xl transition-all duration-300"
+                                variant="contained" id="post-btn" type="submit"
+                                startIcon={<SendIcon />}>
+                                    Post Thread
+                                </Button>
                             </div>
                         </div>
-
-                        {/* Buttons */}
-                        <div className="flex justify-end">
-                            <Button 
-                            className="shadow-lg hover:shadow-2xl transition-all duration-300"
-                            variant="contained" id="post-btn"
-                            startIcon={<SendIcon />}>
-                                Post Thread
-                            </Button>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>

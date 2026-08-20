@@ -97,6 +97,17 @@ class UserViewSet(viewsets.ModelViewSet):
             #fallback        
             return UserUpdateProfileSerializer
 
+        if self.action == 'password':
+            sender = getattr(self.request, 'user', None)          
+            try:
+                target = self.get_object()
+            except Exception:
+                return UserUpdateProfileSerializer           
+            if target == sender:
+                return UserUpdateProfileSerializer
+            #fallback        
+            return UserUpdateProfileSerializer
+        
         if self.action == 'retrieve':
             sender = getattr(self.request, 'user', None)
             if not sender or not sender.is_authenticated:
@@ -140,6 +151,9 @@ class UserViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated()]
         
         if self.action == 'profileImage':
+            return [permissions.IsAuthenticated()]
+
+        if self.action == 'password':
             return [permissions.IsAuthenticated()]
     
         return [IsAdmin()]
@@ -195,4 +209,5 @@ class UserViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    
 

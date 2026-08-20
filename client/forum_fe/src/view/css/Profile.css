@@ -284,3 +284,11 @@
     font-weight: bold;
     font-size: 16px;
 }
+
+#update-btn{
+    background-color: #9400D3;
+    color: white;
+    width: 50%;
+    font-weight: bold;
+    font-size: 16px;
+}

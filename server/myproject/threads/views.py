@@ -129,11 +129,37 @@ class ThreadViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def my_threads(self, request):
         #"""GET /api/threads/my_threads/ — the logged-in user's own threads."""
-        threads = self.get_queryset().filter(user=request.user)
-        page = self.paginate_queryset(threads)
-        serializer = UserPublicThreadSerializer(page or threads, many=True, context={'request': request})
-        return self.get_paginated_response(serializer.data) if page is not None else Response(serializer.data)
+        threads = (
+            self.get_queryset()
+            .select_related('status')
+            .prefetch_related('images')
+            .annotate(reply_count=Count('replies', distinct=True))
+            ).filter(user=request.user)
 
+        status_id = request.query_params.get('status')
+        if status_id:
+            threads = threads.filter(status_id=status_id)
+
+        letter = request.query_params.get('letter', '').strip()
+        if letter:
+            if letter == '#':
+                threads = threads.filter(title__iregex=r'^[^a-zA-Z]')
+            else:
+                threads = threads.filter(title__istartswith=letter[0])
+        
+        ordering = request.query_params.get('ordering', '-created_at')
+        if ordering.lstrip('-') in ['title','created_at', 'view_count', 'like_count']:
+            threads = threads.order_by(ordering)
+
+        page = self.paginate_queryset(threads)
+        if page is not None:
+            serializer = ListingThreadSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    
     #filtering a minimal threads listing, sorting through status, category and date
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def listings(self, request):
