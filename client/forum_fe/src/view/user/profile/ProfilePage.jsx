@@ -1,13 +1,13 @@
 import SideButton from "../../../component/SideButton"
 import Footer from "../../../component/Footer"
 import Navbar from "../../../component/Navbar"
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 import { Button } from "@mui/material"
 import '../../css/Profile.css'
 import { useCallback, useEffect, useState } from "react"
 import SendIcon from '@mui/icons-material/Send';
 //
-import forumThumbnail from '../../../assets/profileDefault.jpg'
+import DrawIcon from '@mui/icons-material/Draw';
 import {ToastContainer, toast } from 'react-toastify'
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 //images
@@ -20,8 +20,8 @@ import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
-import {modalStyle} from './style/Modals'
-
+import {modalStyle, formatDate, modalStyle2} from './style/Modals'
+ 
 //account checking section
 function ProfileOverview(){
 
@@ -77,7 +77,7 @@ function ProfileOverview(){
         }
 
         try{
-            await api.patch(`/api/users/profile/`, formData,{
+            await api.patch(`/api/users/me/`, formData,{
                 headers: { 'Content-Type': 'multipart/form-data' },
             })
 
@@ -150,10 +150,12 @@ function ProfileOverview(){
     return(
         <>
         <div className="py-2 min-h-[60vh]">
-            <div className="flex flex-row justify-between items-end changed-info">
-                <div className="bg-[#D8BFD8] border-[#9400D3] rounded-md border p-2">
-                    <p className="">Hello, username#1, your account info last update is 18/02/2026</p>
-                </div>
+            <div className="flex flex-row justify-end items-end changed-info">
+                {/* <div className="bg-[#D8BFD8] border-[#9400D3] rounded-md border p-2">
+                    <p className="">
+                        hello, {user?.username}. your last u
+                    </p>
+                </div> */}
                 <div className="flex flex-col items-center badge-tab">
                     <WorkspacePremiumIcon/>
                     <p>{user?.current_point}</p>
@@ -278,8 +280,13 @@ function ProfileOverview(){
         >
             <Fade in={open}>
                 <Box  sx={modalStyle}>
-                    <div className="">
-                        <p>Update profile</p>
+                    <div className="p-4 flex justify-center">
+                        <p className="form-title">Update Profile</p>
+                    </div>
+                    <div className="bg-[#D8BFD8] border-[#9400D3] rounded-md border p-2">
+                        <p className="">
+                            hello, {user?.username}. your last updated was {user?.updated_at}
+                        </p>
                     </div>
                     <form action="" className="p-4"  onSubmit={updateProfile}>
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
@@ -382,9 +389,15 @@ function ProfileOverview(){
         >
                 <Fade in={open1}>
                     <Box  sx={modalStyle}>
-                        <div className="">
-                            <p>Update Password</p>
+                        <div className="p-4 flex justify-center">
+                            <p className="form-title">Update Password</p>
                         </div>
+                        <div className="bg-[#D8BFD8] border-[#9400D3] rounded-md border p-2">
+                            <p className="">
+                                hello, {user?.username}. your last updated was {user?.updated_at}
+                            </p>
+                        </div>
+                        
                         <form action="" className="p-4"  onSubmit={updatePassword}>
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
                                 <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right 
@@ -445,6 +458,7 @@ function ProfileOverview(){
 
 //thread checking section
 function ThreadOverview(){
+    const navigate = useNavigate();
     const [threads, setThread] = useState([])
     const {user,loading} = useAuth()
     if(!user){
@@ -468,29 +482,26 @@ function ThreadOverview(){
             const {data} = await api.get(`/api/threads/my_threads/?${params.toString()}`)
             setThread(data.results ?? data)
             
-            console.log('data', data);
-            console.log('param1:', sortParam)
-            console.log('param2:', statusParam)
-
-        } catch(error){
-            console.log('error fetching ur threads', error)
-            toast.error(`${error}`, {
+        } catch (err) {
+            console.error('Error fetching threads:', err);
+            const msg = err.response?.data?.detail || 'Failed to fetch threads.';
+            toast.error(msg, {
                 position: 'top-right',
                 autoClose: 3000,
             });
         }
     }, [ordering, statusSelectValue])
 
-    useEffect(()=>{
-        if(!loading){
-            if(!user){
+    useEffect(() => {
+        if (!loading) {
+            if (!user) {
                 toast.error('You must login to use this function!');
-                window.location.href = '/login';
+                navigate('/login'); 
             } else {
-                fetchThread();
+                fetchThread(); 
             }
         }
-    },[user, loading])
+    }, [user, loading, fetchThread, navigate]);
 
     
 
@@ -499,9 +510,6 @@ function ThreadOverview(){
         fetchThread(ordering, newStatus);
     };
     
-    if (loading) return <p>Loading...</p>;
-    if (!user) return null;
-
     const handleSortChange = (newSort) => {
         setOrdering(newSort);
         fetchThread(newSort, statusSelectValue);
@@ -517,8 +525,245 @@ function ThreadOverview(){
         }
     }
 
+    //update thread
+
+    const [open, setOpen] = React.useState(false);
+    const [selectedThreadId, setSelectedThreadId] = useState(null);
+
+    const openModal = (threadId) => {
+        setSelectedThreadId(threadId);
+        setOpen(true);
+    };
+    const closeModal = () => {
+        setOpen(false);
+        setSelectedThreadId(null);
+    };
+
+    const handleConfirmArchive = async () => {
+        await archiveThread(selectedThreadId);
+        closeModal();
+    };
+
+    const archiveThread = async (id) => {
+        try {
+            await api.patch(`/api/threads/${id}/archive/`);
+            toast.success('Thread archived successfully!', {
+                position: 'top-right',
+                autoClose: 1000,
+            });
+        } catch (error) {
+            toast.error(`${error}!`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    };
+
+
+    const DeleteThread = async (id) => {
+        try {
+            await api.patch(`/api/threads/${id}/soft_delete/`);
+            toast.success('Thread archived successfully!', {
+                position: 'top-right',
+                autoClose: 1000,
+            });
+        } catch (error) {
+            toast.error(`${error}!`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    };
+
     if (loading) return <p>Loading...</p>;
 
+    return(
+        <>
+        <ToastContainer/>
+        <div className="py-2 min-h-[60vh]">
+            <div className="flex justify-end gap-2 sorting">
+                <p>Sorting:</p>
+                <select value={selectValue} onChange={(e) => handleSelectChange(e.target.value)}>
+                    <option value="-title">A-Z</option>
+                    <option value="-created_at">New</option>
+                    <option value="-view_count">Most Viewed</option>
+                    <option value="-like_count">Most Liked</option>
+                </select>
+                <select value={statusSelectValue} onChange={(e) => handleStatusSelectChange(e.target.value)}>
+                    <option value="all">All Statuses</option>
+                    <option value="1">On going</option>
+                    <option value="2">Archived</option>
+                    <option value="3">Report</option>
+                </select>
+            </div>
+
+            <div className="py-2">
+                <div className="grid grid-cols-1 gap-4">
+                    {threads.map((thread) =>(                    
+                    <div className="card shadow-md">
+                        <div className="flex flex-row gap-4">
+                            <img 
+                            src={thread.images?.find((img)=>
+                            img.is_thumbnail)?.file || defaultImg} 
+                            alt="[object Object]"
+                            className="shadow-sm rounded-md"
+                            id='thread-thumbnail'/>
+                            <div className="thread-title">
+                                <p>{thread.title}</p>
+                            </div>
+                            
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2
+                         justify-between">
+                            <div className="flex gap-2 items-end p-2">
+                                <p className="date-info">
+                                    <span className="text-[#9400D3] font-bold">created:
+                                        </span> {formatDate(thread.created_at) }
+                                    -
+                                    <span className="text-[#9400D3] font-bold">created:
+                                        </span>  {formatDate(thread.updated_at) }
+                                </p>
+                                <div className="flex gap-2">
+                                    <div className="card-info info-archive">
+                                        {thread.status_name}
+                                    </div>
+                                    {/* display the amount of reply */}
+                                    <div className="card-info info-reply gap-1">
+                                        <i class="bi bi-chat-dots"></i>
+                                        {thread.reply_count}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex flex-row justify-end items-end gap-2">
+                                <Link to={`/threads/${thread.id}`}>
+                                    <Button variant="outlined" className="shadow-md" id='thread-btn-1'>
+                                        View
+                                    </Button>
+                                </Link>
+                                <Button className="shadow-md" id='thread-btn-3'
+                                onClick={() => openModal(thread.id)}>
+                                    Close
+                                </Button>
+                                <Button variant="delete" className="shadow-md" 
+                                id='thread-btn-2'
+                                >
+                                    Delete
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+        <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={open}
+            onClose={closeModal}
+            closeAfterTransition
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+            backdrop: {
+                timeout: 500,
+            },
+            }}
+        >
+            <Fade in={open}>
+                <Box  sx={modalStyle2}>
+                    <div className="flex justify-center
+                    text-[24px] lg:text-[32px] text-red-600 font-bold">
+                        <p>Close thread</p>
+                    </div>
+                    <div className="">
+                        <div className="flex p-4 justify-center">
+                            are you sure you want to closed this thread?
+                        </div>
+                        <div className="flex justify-center gap-4">
+                            <Button variant="outlined" color="error"  
+                            onClick={closeModal}>
+                                never mind
+                            </Button>
+                            <Button id="update-btn"
+                            onClick={handleConfirmArchive}>
+                                Yes
+                            </Button>
+                        </div>
+                    </div>
+                </Box>
+            </Fade>
+        </Modal>
+        </>
+    )
+}
+
+//bookmark section
+function BookMarks(){
+    const { user, loading } = useAuth();
+    const navigate = useNavigate();
+
+    const [bookmarks, setBookmarks] = useState([]);
+    const [selectValue, setSelectValue] = useState('-created_at');
+    const [ordering, setOrdering] = useState('-created_at');
+    const [statusSelectValue, setStatusSelectValue] = useState('all');
+
+    const fetchBookmark = useCallback(async () => {
+        try {
+            const params = new URLSearchParams();
+            if (statusSelectValue && statusSelectValue !== 'all') {
+                params.append('status', statusSelectValue);
+            }
+            params.append('ordering', ordering);
+
+            const { data } = await api.get(`/api/bookmarks/?${params.toString()}`);
+            setBookmarks(data.results ?? data);
+
+        } catch (err) {
+            console.error('Error fetching bookmarks:', err);
+            const msg = err.response?.data?.detail || 'Failed to fetch bookmarks.';
+            toast.error(msg, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    }, [ordering, statusSelectValue]);
+
+
+
+    useEffect(() => {
+        if (!loading) {
+            if (!user) {
+                toast.error('You must login to use this function!');
+                navigate('/login'); 
+            } else {
+                fetchBookmark(); 
+            }
+        }
+    }, [user, loading, fetchBookmark, navigate]);
+
+    const handleStatusSelectChange = (newStatus) => {
+        setStatusSelectValue(newStatus);
+        fetchBookmark(ordering, newStatus);
+    };
+    
+    const handleSortChange = (newSort) => {
+        setOrdering(newSort);
+        fetchBookmark(newSort, statusSelectValue);
+    };
+
+    const handleSelectChange = (value) => {
+        setSelectValue(value);
+        
+        if (value.startsWith('status:')) {
+            const statusId = value.split(':')[1];
+            setStatusSelectValue(statusId);
+        } else {
+            handleSortChange(value);
+        }
+    };
+
+    
+    if (loading) return <p>Loading...</p>;
     return(
         <>
         <div className="py-2 min-h-[60vh]">
@@ -540,116 +785,67 @@ function ThreadOverview(){
 
             <div className="py-2">
                 <div className="grid grid-cols-1 gap-4">
-                    {threads.map((thread) =>(
-
-                    
-                    <div className="card shadow-md">
-                        <div className="flex flex-row gap-4">
-                            <img 
-                            src={thread.images?.find((img)=>
-                            img.is_thumbnail)?.file || forumThumbnail} 
-                            alt="[object Object]" id="thumbnail-img"
-                            className="shadow-sm rounded-md"
-                            id='thread-thumbnail'/>
-                            <div className="thread-title">
-                                <p>{thread.title}</p>
+                    {bookmarks.map((bookmark) =>(
+                        <div className="card shadow-md">
+                            <div className="flex flex-row gap-4">
+                                <img 
+                                src={bookmark.thread.images?.find((img)=>
+                                img.is_thumbnail)?.file || defaultImg} 
+                                alt="[object Object]"
+                                className="shadow-sm rounded-md"
+                                id='thread-thumbnail'/>
+                                <div className="thread-title">
+                                    <p>{bookmark.thread.title}</p>
+                                </div>
+                                
                             </div>
-                            
-                        </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2
-                         justify-between">
-                            <div className="flex gap-2 items-end">
-                                <p className="date-info">
-                                    <span className="text-[#9400D3] font-bold">created:</span> 22/02/2026 
-                                    -
-                                    <span className="text-[#9400D3] font-bold">created:</span> 22/02/2026
-                                </p>
-                                <div className="flex gap-2">
-                                    <div className="card-info info-archive">
-                                        {thread.status_name}
-                                    </div>
-                                    {/* display the amount of reply */}
-                                    <div className="card-info info-reply gap-1">
-                                        <i class="bi bi-chat-dots"></i>
-                                        {thread.reply_count}
+                            <div className="grid grid-cols-1 lg:grid-cols-2
+                            justify-between">
+                                <div className="flex gap-2 items-end p-2">
+                                    <p className="date-info">
+                                        <span className="text-[#9400D3] font-bold">created:</span> 
+                                        {formatDate(bookmark.created_at) }
+                                        -
+                                        <span className="text-[#9400D3] font-bold">created:</span> 
+                                        {formatDate(bookmark.updated_at) }
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <div className="card-info info-archive">
+                                            {bookmark.thread.status_name}
+                                        </div>
+                                        {/* display the amount of reply */}
+                                        <div className="card-info info-reply gap-1">
+                                            <i class="bi bi-chat-dots"></i>
+                                            {bookmark.thread.reply_count}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="flex flex-row justify-end items-end gap-2">
-                                <Link to={`/threads/${thread.id}`}>
-                                    <Button variant="outlined" className="shadow-md" id='thread-btn-1'>
-                                        View
+                                <div className="flex flex-row justify-end items-end gap-2">
+                                    <Link to={`/threads/${bookmark.thread.id}`}>
+                                        <Button variant="outlined" className="shadow-md" id='thread-btn-1'>
+                                            View
+                                        </Button>
+                                    </Link>
+                                    <Button className="shadow-md" id='thread-btn-3'>
+                                        Edit
                                     </Button>
-                                </Link>
-                                <Button variant="delete" className="shadow-md" id='thread-btn-2'>
-                                    Delete
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-        </>
-    )
-}
-
-//bookmark section
-function BookMarks(){
-    return(
-        <>
-        <div className="py-2 min-h-[60vh]">
-            <div className="flex justify-end gap-2 sorting">
-                <p>Sorting:</p>
-                <select name="" id="">
-                    <option value="">A-z</option>
-                    <option value="">New</option>
-                    <option value="">Archived</option>
-                    <option value="">Most view</option>
-                    <option value="">Most Like</option>
-                </select>
-            </div>
-
-            <div className="py-2">
-                <div className="grid grid-cols-1 gap-4">
-                    <div className="card shadow-md">
-                        <div className="flex flex-row gap-4">
-                            <img src={defaultImg} alt="" id='thread-thumbnail'/>
-                            <div className="thread-title">
-                                <p>Arknights Endfield might be getting heat with IS , rouge like and somthing, something </p>
-                            </div>
-                            
-                        </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2
-                         justify-between">
-                             <div className="flex gap-2 items-end">
-                                <p className="date-info">
-                                    <span className="text-[#9400D3] font-bold">created:</span> 22/02/2026 
-                                    -
-                                    <span className="text-[#9400D3] font-bold">created:</span> 22/02/2026
-                                </p>
-                                <div className="flex gap-2">
-                                    <div className="card-info info-archive">
-                                        archived
-                                    </div>
-                                    {/* display the amount of reply */}
-                                    <div className="card-info info-reply gap-1">
-                                        <i class="bi bi-chat-dots"></i>
-                                        view
-                                    </div>
+                                    <Button variant="delete" className="shadow-md" id='thread-btn-2'>
+                                        Delete
+                                    </Button>
                                 </div>
                             </div>
-                            <div className="flex flex-row justify-end gap-2">
-                                <Button variant="outlined" className="shadow-md" id='thread-btn-1'>
-                                    View
-                                </Button>
-                                <Button variant="delete" className="shadow-md" id='thread-btn-2'>
-                                    Delete
-                                </Button>
+                            <div className="note-box">
+                            {bookmark?.note ? (
+                                <div className="flex gap-1 items-center">
+                                    <DrawIcon/>
+                                    <p>Note: {bookmark.note}</p>
+                                </div>
+                                ): (
+                                    <p className="text-gray-400">No note added</p>
+                                )}
                             </div>
                         </div>
-                    </div>
+                    ))}
                 </div>
             </div>
         </div>

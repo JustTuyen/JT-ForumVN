@@ -236,7 +236,28 @@
     font-size: 16px;
 }
 
+#thread-btn-3{
+    background-color: white;
+    color: #DE80E9;
+    border: #DE80E9 1px solid;
+    font-weight: light;
+    border-radius: 24px;
+    text-transform: none;
+    padding: 5px 20px;
+    font-size: 16px;
+}
+
+.form-title{
+    font-weight: bold;
+    font-size: 32px;
+}
 @media (max-width: 1024px){
+    
+    .form-title{
+        font-weight: bold;
+        font-size: 24px;
+    }
+
     .sorting{
         font-size: 14px;
     }
@@ -291,4 +312,20 @@
     width: 50%;
     font-weight: bold;
     font-size: 16px;
+}
+
+.note-box{
+    border-top: #9400D3 2px solid;
+    padding: 2px;
+    margin: 2px;
+    font-size: 16px;
+    color: #9400D3;
+    opacity: 50%;
+    font-style: italic;
+}
+
+@media (max-width: 810px){
+    .note-box{
+        font-size: 18px;
+    }
 }

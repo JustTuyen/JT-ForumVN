@@ -8,6 +8,8 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import SendIcon from '@mui/icons-material/Send';
 import '../css/Thread.css'
 //images
+import FavoriteIcon from '@mui/icons-material/Favorite';
+
 import CancelIcon from '@mui/icons-material/Cancel';
 import { useEffect, useState } from "react";
 import api from "../../auth/ApiHandle";
@@ -45,6 +47,7 @@ function ThreadRepliesGallery({replies, onSelectReply}){
         onSelectReply(reply_id);
         document.getElementById('reply-box')?.scrollIntoView({ behavior: 'smooth' });
     };
+
 
 
     const scrollToReply = (replyId)=>{
@@ -179,22 +182,67 @@ function Thread(){
         
     }
 
-    useEffect(()=>{
-        async function fetchThreadDetails(){
-            try{
-                const {data} =  await api.get(`/api/threads/${id}/`)
-                setThread(data);
-                setLoading(false)
-                console.log('data', data);
-            } catch(error){
-                setError('failed to load thread')
-                setLoading(false)
-                console.log(error)
-            }
+    const [likeCount, setLikeCount] = useState(0);
+    const [isLiked, setIsLiked] = useState(false);
+   async function fetchThreadDetails() {
+        try {
+            setLoading(true);
+            const { data } = await api.get(`/api/threads/${id}/`);
+            setThread(data);
+            
+
+            setLikeCount(data.like_count || 0);
+            setIsLiked(data.is_liked || false); 
+            
+            setLoading(false);
+
+        } catch (err) {
+
+            setError('Failed to load thread.');
+            setLoading(false);
+        }
+    }
+    
+
+    const likingThread = async () => {
+        if (!user) {
+            toast.warning('Please log in to like this thread.');
+            return;
         }
 
-        fetchThreadDetails()
+        const wasLiked = isLiked;
+        
+        // Optimistic UI Update
+        setIsLiked(!wasLiked);
+        setLikeCount((prev) => (wasLiked ? prev - 1 : prev + 1));
+
+        try {
+            const { data } = await api.post(`/api/threads/${id}/like_thread/`);
+            
+            // Re-sync state with accurate backend response
+            if (data.like_count !== undefined) setLikeCount(data.like_count);
+            if (data.liked !== undefined) setIsLiked(data.liked);
+
+        } catch (err) {
+            // Revert Optimistic UI Update on failure
+            setIsLiked(wasLiked);
+            setLikeCount((prev) => (wasLiked ? prev + 1 : prev - 1));
+
+            const msg = err.response?.data?.detail || 'Failed to update like status.';
+            toast.error(msg, {
+                position: 'top-right',
+                autoClose: 1500,
+            });
+        }
+    };
+
+    useEffect(()=>{
+        if (id) {
+            fetchThreadDetails();
+        }
     }, [id])
+    
+    if (loading) return <div>Loading...</div>;
 
     return(
         <>
@@ -248,10 +296,12 @@ function Thread(){
                                  {/* thread action */}
                                 <div className="flex gap-2 p-2">
                                     <div className="flex flex-row items-center">
-                                        <IconButton color="secondary" aria-label="add an alarm">
-                                            <FavoriteBorderIcon />
+                                        <IconButton color="secondary"
+                                        onClick={likingThread}
+                                        aria-label="add an alarm">
+                                            {isLiked ? <FavoriteIcon/> : <FavoriteBorderIcon/>}
                                         </IconButton>
-                                        <p>({thread?.like_count} likes)</p>
+                                        <p>{likeCount} likes</p>
                                     </div>
                                     <Button variant="outlined" id="report-btn">
                                         Report

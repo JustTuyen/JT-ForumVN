@@ -29,7 +29,7 @@ function Navbar(){
                                 Welcome back, <span className="mx-2">{user.username}!</span>
                             </Link>
                             {/* Log Out Button (Keep OUTSIDE the Link tag) */}
-                            <button onClick={logout} className="btn btn-outline-light">
+                            <button onClick={logout} className="btn btn-outline-light logout-btn">
                                 Log Out
                             </button>
                         </div>

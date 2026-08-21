@@ -8,7 +8,7 @@ export function AuthProvider({ children }){
 
     const fetchCurrentUser = async() =>{
         try{
-            const {data} = await api.get('/api/users/profile/')
+            const {data} = await api.get('/api/users/me/')
             setUser(data)
         } catch{
             logout()

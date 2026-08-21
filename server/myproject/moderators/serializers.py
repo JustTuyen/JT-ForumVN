@@ -14,31 +14,42 @@ class MiniImageSerializer(serializers.ModelSerializer):
          
 class MiniThreadSerializer(serializers.ModelSerializer):
     images = MiniImageSerializer(many=True, read_only=True)
+    status_name = serializers.ReadOnlyField(source='status.status_name')
+    reply_count = serializers.IntegerField(read_only=True)
     class Meta:
         model = Thread
         fields = [
-            'id','title','context','created_at','updated_at',
+            'id','title','context','status_name',
+            'images','created_at','updated_at',
+            'reply_count',
         ]
         read_only_fields = ['created_at','updated_at'] 
 
 class BookmarkSerializer(serializers.ModelSerializer):
-    threads = MiniThreadSerializer(many=True, read_only=True)
+    thread = MiniThreadSerializer(read_only=True)
+    thread_id = serializers.PrimaryKeyRelatedField(
+        queryset=Thread.objects.all(), 
+        source='thread', 
+        write_only=True
+    )
     class Meta:
         model = Bookmark
         fields = [
+            'id',
             'user',
-            'threads',
+            'thread',
+            'thread_id',
             'note',
             'created_at','updated_at',
         ]
-        read_only_fields = ['created_at','updated_at'] 
+        read_only_fields = ['user','created_at','updated_at'] 
 
-        def validate_user(self, value):
-            if not value.status or value.status.status_name != 'Active':
-                raise serializers.ValidationError("This user account is not active.")
-            return value
+    def validate_user(self, value):
+        if not value.status or value.status.status_name != 'Active':
+            raise serializers.ValidationError("This user account is not active.")
+        return value
 
-        def validate_thread(self, value):
-            if not value.status or value.status.status_name == 'Suspend':
-                raise serializers.ValidationError("This thread is not available.")
-            return value
+    def validate_thread_id(self, value):
+        if not value.status or value.status.status_name == 'Suspend':
+            raise serializers.ValidationError("This thread is not available.")
+        return value

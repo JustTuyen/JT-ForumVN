@@ -242,9 +242,10 @@ class ListingThreadSerializer(serializers.ModelSerializer):
             'title',
             'status',
             'status_name',
-            'reply_count','images'
+            'reply_count','images',
+            'created_at', 'updated_at',
         ]
-        read_only_fields = ['id']
+        read_only_fields = ['created_at', 'updated_at',]
 
 #Replies
 class CreateReplySerializer(serializers.ModelSerializer):

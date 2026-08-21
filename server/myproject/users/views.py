@@ -147,7 +147,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'destroy':
             return[permissions.IsAuthenticated(), IsAdmin()]
 
-        if self.action == 'profile':
+        if self.action == 'me':
             return [permissions.IsAuthenticated()]
         
         if self.action == 'profileImage':
@@ -155,20 +155,31 @@ class UserViewSet(viewsets.ModelViewSet):
 
         if self.action == 'password':
             return [permissions.IsAuthenticated()]
+        
+        if self.action == 'profile':
+            return [permissions.AllowAny()]
     
         return [IsAdmin()]
     
 
     #GET / PATCH / PUT /api/users/profile/
-    @action(detail=False, methods=['get','patch'], permission_classes=[permissions.IsAuthenticated])
-    def profile(self, request):
-            user = request.user
-            if request.method == 'GET':
-                return Response(UserProfileSerializer(user, context={'request':request}).data)
-            serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True, context={'request': request})
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(UserProfileSerializer(user, context={'request': request}).data)
+    @action(detail=False, methods=['get', 'patch'], permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        user = request.user 
+        if request.method == 'GET':
+            return Response(UserProfileSerializer(user, context={'request':request}).data)
+        serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(UserProfileSerializer(user, context={'request': request}).data)
+
+
+    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    def profile(self, request, pk=None):
+        """GET /api/users/{id}/profile/ — view any user's public profile"""
+        user = self.get_object()   # now valid, since detail=True provides pk
+        return Response(UserPublicDataSerializer(user, context={'request': request}).data)
+           
 
     #https/user/password
     @action(detail=True, methods=['patch', 'put'],  permission_classes=[permissions.IsAuthenticated, IsUserOrBoss])

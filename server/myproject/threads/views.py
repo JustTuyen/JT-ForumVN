@@ -13,6 +13,7 @@ from .serializers import (
 from .serializers import (
     CreateReplySerializer, ReplyUpdateSerializer,PublicReplySerializer
 )
+from cores.models import Status
 from rest_framework.response import Response
 from threads.models import Image
 from users.models import User
@@ -46,13 +47,7 @@ class IsModeratorOrAdmin(permissions.BasePermission):
 class IsUserOrBoss(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         u = request.user
-        if not u.is_authenticated:
-            return False
-        return (
-            obj == u
-            or u.is_staff
-            or u.role in [User.Role.ADMIN, User.Role.MODERATOR]
-        )
+        return obj.user == u or u.is_staff or u.role in [User.Role.ADMIN, User.Role.MODERATOR]
 
 logger = logging.getLogger(__name__)
 class ThreadViewSet(viewsets.ModelViewSet):
@@ -97,7 +92,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return [permissions.IsAuthenticated()]
 
-        if self.action in ['update', 'partial_update']:
+        if self.action in ['update', 'partial_update','archive', 'soft_delete']:
             return [permissions.IsAuthenticated(), IsUserOrBoss()]
 
         if self.action == 'destroy':
@@ -106,7 +101,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
         if self.action == 'retrieve':
             return [permissions.AllowAny()]
         #custom api call
-        if self.action == 'my_threads':
+        if self.action in ['my_threads', 'like_thread']:
             return [permissions.IsAuthenticated()]    
         
         if self.action in ['listings', 'searcher','top_only']:
@@ -124,6 +119,14 @@ class ThreadViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def like_thread(self, request, pk=None):
+        thread = self.get_object()
+        Thread.objects.filter(pk=thread.pk).update(like_count=F('like_count') + 1)
+        thread.refresh_from_db()
+        return Response(
+            status=status.HTTP_200_OK
+        )
     
     #searching for user-threads
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
@@ -204,7 +207,12 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
         serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
         return Response(serializer.data)
-
+        threads = (
+            self.get_queryset()
+            .select_related('status')
+            .prefetch_related('images')
+            .annotate(reply_count=Count('replies', distinct=True))
+            ).filter(user=request.user)
 
     #searching through key words
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
@@ -257,6 +265,40 @@ class ThreadViewSet(viewsets.ModelViewSet):
         serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
         return Response(serializer.data)
 
+    def _set_thread_status(self, request, pk, status_name, action_label):
+        thread = self.get_object()
+        if thread.user != request.user:
+            return Response({'detail': f'You can only {action_label} your own threads.'}, status=status.HTTP_403_FORBIDDEN)
+
+        target_status = Status.objects.filter(status_name=status_name).first()
+        if not target_status:
+            return Response({'detail': f"'{status_name}' status is not configured."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        Thread.objects.filter(pk=thread.pk).update(status=target_status)
+        thread.refresh_from_db()
+        return Response({'detail': f'Thread {action_label}d.', 'status': thread.status_id}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'], permission_classes=[permissions.IsAuthenticated])
+    def archive(self, request, pk=None):
+        return self._set_thread_status(request, pk, 'Archived', 'archive')
+
+    @action(detail=True, methods=['patch'], permission_classes=[permissions.IsAuthenticated])
+    def soft_delete(self, request, pk=None):
+        return self._set_thread_status(request, pk, 'Suspend', 'suspend')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -293,8 +335,8 @@ class ReplyViewSet(viewsets.ModelViewSet):
         return PublicReplySerializer
 
     def get_permissions(self):
-        if self.action == 'create':
-            return [permissions.AllowAny()]
+        if self.action in ['create', 'like_reply']:
+            return [permissions.IsAuthenticated()]
 
         if self.action in ['update', 'partial_update']:
             return[permissions.IsAuthenticated(),IsUserOrBoss()]
@@ -302,3 +344,12 @@ class ReplyViewSet(viewsets.ModelViewSet):
         if self.action == 'destroy':
             return[permissions.IsAuthenticated(), IsAdmin()]
         return [IsAdmin()]
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def like_reply(self, request, pk=None):
+        reply = self.get_object()
+        Reply.objects.filter(pk=reply.pk).update(like_count=F('like_count') + 1)
+        reply.refresh_from_db()
+        return Response(
+            status=status.HTTP_200_OK
+        )
