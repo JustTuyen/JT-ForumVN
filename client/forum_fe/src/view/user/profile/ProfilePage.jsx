@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import SideButton from "../../../component/SideButton"
 import Footer from "../../../component/Footer"
 import Navbar from "../../../component/Navbar"
@@ -7,6 +8,7 @@ import '../../css/Profile.css'
 import { useCallback, useEffect, useState } from "react"
 import SendIcon from '@mui/icons-material/Send';
 //
+import CollectionsBookmarkIcon from '@mui/icons-material/CollectionsBookmark';
 import DrawIcon from '@mui/icons-material/Draw';
 import {ToastContainer, toast } from 'react-toastify'
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
@@ -17,11 +19,11 @@ import api from "../../../auth/ApiHandle"
 //
 import * as React from 'react';
 import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import {modalStyle, formatDate, modalStyle2} from './style/Modals'
- 
 //account checking section
 function ProfileOverview(){
 
@@ -348,12 +350,12 @@ function ProfileOverview(){
                             </div>
                         </div>
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
-                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] shrink-0">
                                 Birthday:
                             </label>
                             <div className="w-full flex-1">
                                <input 
-                                type="text" 
+                                type="date" 
                                 value={birthday}
                                 onChange={(e) => setBirthday(e.target.value)}
                                 className="w-full bg-white rounded-md px-3 py-2 border 
@@ -401,7 +403,7 @@ function ProfileOverview(){
                         <form action="" className="p-4"  onSubmit={updatePassword}>
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
                                 <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right 
-                                text-[#9400D3] flex-shrink-0">
+                                text-[#9400D3] shrink-0">
                                     Current Password:
                                 </label>
                                 <div className="w-full flex-1">
@@ -415,7 +417,7 @@ function ProfileOverview(){
                                 </div>
                             </div>
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
-                                <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                                <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] shrink-0">
                                     New Password:
                                 </label>
                                 <div className="w-full flex-1">
@@ -429,7 +431,7 @@ function ProfileOverview(){
                                 </div>
                             </div>
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
-                                <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                                <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] shrink-0">
                                     Enter Again:
                                 </label>
                                 <div className="w-full flex-1">
@@ -559,6 +561,20 @@ function ThreadOverview(){
         }
     };
 
+    const [open1, setOpen1] = React.useState(false);
+    const openModal1 = (threadId) => {
+        setSelectedThreadId(threadId);
+        setOpen1(true);
+    };
+    const closeModal1 = () => {
+        setOpen1(false);
+        setSelectedThreadId(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        await DeleteThread(selectedThreadId);
+        closeModal();
+    };
 
     const DeleteThread = async (id) => {
         try {
@@ -597,7 +613,7 @@ function ThreadOverview(){
                 </select>
             </div>
 
-            <div className="py-2">
+            <div className="py-10">
                 <div className="grid grid-cols-1 gap-4">
                     {threads.map((thread) =>(                    
                     <div className="card shadow-md">
@@ -646,6 +662,7 @@ function ThreadOverview(){
                                 </Button>
                                 <Button variant="delete" className="shadow-md" 
                                 id='thread-btn-2'
+                                onClick={() => openModal1(thread.id)}
                                 >
                                     Delete
                                 </Button>
@@ -686,6 +703,43 @@ function ThreadOverview(){
                             </Button>
                             <Button id="update-btn"
                             onClick={handleConfirmArchive}>
+                                Yes
+                            </Button>
+                        </div>
+                    </div>
+                </Box>
+            </Fade>
+        </Modal>
+        <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={open1}
+            onClose={closeModal1}
+            closeAfterTransition
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+            backdrop: {
+                timeout: 500,
+            },
+            }}
+        >
+            <Fade in={open1}>
+                <Box  sx={modalStyle2}>
+                    <div className="flex justify-center
+                    text-[24px] lg:text-[32px] text-red-600 font-bold">
+                        <p>Delete thread</p>
+                    </div>
+                    <div className="">
+                        <div className="flex p-4 justify-center">
+                            are you sure you want to delete this thread?
+                        </div>
+                        <div className="flex justify-center gap-4">
+                            <Button variant="outlined" color="error"  
+                            onClick={closeModal1}>
+                                never mind
+                            </Button>
+                            <Button id="update-btn"
+                            onClick={handleConfirmDelete}>
                                 Yes
                             </Button>
                         </div>
@@ -763,7 +817,21 @@ function BookMarks(){
     };
 
     
-    if (loading) return <p>Loading...</p>;
+    if (loading) return(
+        <>
+        <SideButton/>
+        <Navbar/>
+        <div className="min-h-screen">
+            <section className="flex flex-col items-center">
+                <div className="w-[80%]">
+                    <Box sx={{ display: 'flex' }}>
+                        <CircularProgress aria-label="Loading…" />
+                    </Box>
+                </div>
+                </section>
+            </div>
+        </>
+    );
     return(
         <>
         <div className="py-2 min-h-[60vh]">
@@ -941,7 +1009,7 @@ function Posting(){
 
             {/* rule board */}
             <div class="py-2">
-                <div className="card-rule bg-white p-2 border-[#9400D3] border-1 rounded-md">
+                <div className="card-rule bg-white p-2 border-[#9400D3] border rounded-md">
                     <p className="font-bold">Note: Thread when post can not be changed</p>
                     <ul className="px-5">
                         <ol>1. rule 1</ol>
@@ -1000,7 +1068,7 @@ function Posting(){
                         <div className="p-2">
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
                                 {/* Label: Takes auto width on mobile, fixed width on desktop */}
-                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                <div className="w-full md:w-24 post-label shrink-0">
                                     <p className="font-bold text-left md:text-right text-[#9400D3]">
                                     Title:
                                     </p>
@@ -1022,7 +1090,7 @@ function Posting(){
 
                             {/* name */}
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                <div className="w-full md:w-24 post-label shrink-0">
                                     <p className="font-bold text-left md:text-right text-[#9400D3]">
                                     Name:
                                     </p>
@@ -1042,7 +1110,7 @@ function Posting(){
 
                             {/* category */}
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                <div className="w-full md:w-24 post-label shrink-0">
                                     <p className="font-bold text-left md:text-right text-[#9400D3]">
                                     Category:
                                     </p>
@@ -1064,7 +1132,7 @@ function Posting(){
 
                             {/* context */}
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                <div className="w-full md:w-24 post-label shrink-0">
                                     <p className="font-bold text-left md:text-right text-[#9400D3]">
                                     Content:
                                     </p>
@@ -1081,7 +1149,7 @@ function Posting(){
                             {/* file */}
                             {imageError && <p className="text-red-500 text-sm mt-1">{imageError}</p>}
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                <div className="w-full md:w-24 post-label shrink-0">
                                     <p className="font-bold text-left md:text-right text-[#9400D3]">
                                     Images:
                                     </p>
@@ -1159,30 +1227,36 @@ function Profile(){
                             </Button>
                         </Link>                   
                     </div>
-                    <div>
+                    <div className="pb-4">
                         <div class="grid grid-cols-6 gap-4">
                             <div className="side-menu">
                                 <ul>
                                     <Link to="/profile">
-                                        <li className="flex gap-4">
+                                        <li className="flex gap-4 menus">
                                             <i class="bi bi-house-door-fill"></i>
                                             <p>Profile</p>
                                         </li>
                                     </Link>
                                     <Link to="/search">
-                                        <li className="flex gap-4">
+                                        <li className="flex gap-4 menus">
                                             <i class="bi bi-search"></i>
                                             <p>Search</p>
                                         </li>
                                     </Link>
                                     <Link to="/rank">
-                                        <li className="flex gap-4">
+                                        <li className="flex gap-4 menus">
                                             <i class="bi bi-bookmark-star-fill"></i>
                                             <p>Rank</p>
                                         </li>
                                     </Link>
-                                     <Link to="/setting">
-                                        <li className="flex gap-4">
+                                    <Link to="/history">
+                                        <li className="flex gap-4 menus">
+                                            <CollectionsBookmarkIcon/>
+                                            <p>History</p>
+                                        </li>
+                                    </Link>
+                                    <Link to="/setting">
+                                        <li className="flex gap-4 menus">
                                             <i class="bi bi-gear-fill"></i>
                                             <p>Setting</p>
                                         </li>

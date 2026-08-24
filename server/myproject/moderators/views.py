@@ -1,30 +1,14 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions
-from .models import Bookmark
-from threads.models import Thread
-from .serializers import BookmarkSerializer
+from .models import Bookmark, Like
+from threads.models import Thread, Reply
+from .serializers import BookmarkSerializer, LikeSerializer
 from django.db.models import Count, Prefetch
 # Create your views here.
 class BookmarkViewSet(viewsets.ModelViewSet):
     #queryset = Bookmark.objects.select_related('user','thread').all()
     serializer_class = BookmarkSerializer
     permission_classes = [permissions.IsAuthenticated]
-
-    # def get_queryset(self):
-    #     #Annotate reply_count directly on the Thread model
-    #     threads_with_reply_count = (
-    #         Thread.objects
-    #         .select_related('status')
-    #         .prefetch_related('images')
-    #         .annotate(reply_count=Count('replies', distinct=True))
-    #     )
-    #     # 2. Prefetch the annotated threads into the Bookmark queryset
-    #     return (
-    #         Bookmark.objects
-    #         .filter(user=self.request.user)
-    #         .select_related('user', 'thread', 'thread__status')
-    #         .annotate(thread_reply_count=Count('thread__replies', distinct=True))
-    #     )
     def get_queryset(self):
         qs = (
             Bookmark.objects
@@ -45,9 +29,12 @@ class BookmarkViewSet(viewsets.ModelViewSet):
             qs = qs.order_by('-created_at')   # default: most recently bookmarked first
 
         return qs
-
-    
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-   
+class LikeViewSet(viewsets.ModelViewSet):
+    queryset = Like.objects.select_related('user','thread','reply').all()
+    serializer_class = LikeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    

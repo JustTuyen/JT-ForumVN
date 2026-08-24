@@ -1,8 +1,10 @@
 from django.db.models import Q, Count, Prefetch,F
+from django.db import transaction
 from rest_framework import viewsets, permissions, status
 from .models import Category, Thread, Reply
 from .serializers import CategorySerializer
 from .serializers import ImageSerializer
+from django.db.models.functions import Greatest
 from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import ( 
     ThreadDataAdminSerializer, ThreadUpdateAdminSerializer,
@@ -17,6 +19,7 @@ from cores.models import Status
 from rest_framework.response import Response
 from threads.models import Image
 from users.models import User
+from moderators.models import Like, Bookmark
 from rest_framework.decorators import action
 #
 from django.utils import timezone
@@ -83,8 +86,8 @@ class ThreadViewSet(viewsets.ModelViewSet):
                 
                 if getattr(sender, 'role', None) == User.Role.MODERATOR:
                     return ThreadDataModSerializer
+                
             return UserPublicThreadSerializer
-            #both for none login and normal user
         
         return UserPublicThreadSerializer
 
@@ -101,7 +104,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
         if self.action == 'retrieve':
             return [permissions.AllowAny()]
         #custom api call
-        if self.action in ['my_threads', 'like_thread']:
+        if self.action in ['my_threads', 'like_thread','thread_bookmark']:
             return [permissions.IsAuthenticated()]    
         
         if self.action in ['listings', 'searcher','top_only']:
@@ -110,21 +113,39 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         Thread.objects.filter(status_id=4, expire_at__lte=timezone.now()).update(status_id=6)
-        return super().get_queryset()
+        #return super().get_queryset()
+        return self.queryset
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         Thread.objects.filter(pk=instance.pk).update(view_count=F('view_count') + 1)
-        instance.refresh_from_db()
+        instance = self.get_queryset().get(pk=instance.pk)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def like_thread(self, request, pk=None):
         thread = self.get_object()
-        Thread.objects.filter(pk=thread.pk).update(like_count=F('like_count') + 1)
+
+        with transaction.atomic():
+            like, created = Like.objects.get_or_create(user=request.user, thread=thread)
+            if not created:
+                like.delete()
+                Thread.objects.filter(pk=thread.pk).update(
+                like_count=Greatest(F('like_count') - 1, 0))
+                is_liked = False
+            else:
+                Thread.objects.filter(pk=thread.pk).update(
+                    like_count=F('like_count') + 1
+                )
+                is_liked = True
+
         thread.refresh_from_db()
         return Response(
+            {
+                'is_liked': is_liked,
+                'like_count': thread.like_count
+            },
             status=status.HTTP_200_OK
         )
     
@@ -162,7 +183,6 @@ class ThreadViewSet(viewsets.ModelViewSet):
         serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
         return Response(serializer.data)
 
-    
     #filtering a minimal threads listing, sorting through status, category and date
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def listings(self, request):
@@ -286,7 +306,29 @@ class ThreadViewSet(viewsets.ModelViewSet):
     def soft_delete(self, request, pk=None):
         return self._set_thread_status(request, pk, 'Suspend', 'suspend')
 
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def thread_bookmark(self, request, pk=None):
+        thread = self.get_object()
+        note = request.data.get('note', '')
+        
+        bookmark, created = Bookmark.objects.get_or_create(
+        user=request.user, 
+        thread=thread, 
+        defaults={'note': note})
+                
 
+        if not created:
+            bookmark.delete()
+            is_bookmarked = False
+        else:
+            is_bookmarked = True
+
+        return Response({
+            'is_bookmarked': is_bookmarked
+        },
+            status=status.HTTP_200_OK
+        )
+            
 
 
 
@@ -348,8 +390,28 @@ class ReplyViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def like_reply(self, request, pk=None):
         reply = self.get_object()
-        Reply.objects.filter(pk=reply.pk).update(like_count=F('like_count') + 1)
+
+        with transaction.atomic():
+            like, created = Like.objects.get_or_create(user=request.user, reply=reply)
+            if not created:
+                like.delete()
+                Reply.objects.filter(pk=reply.pk).update(
+                like_count=Greatest(F('like_count') - 1, 0))
+                is_liked = False
+            else:
+                Reply.objects.filter(pk=reply.pk).update(
+                    like_count=F('like_count') + 1
+                )
+                is_liked = True
+
         reply.refresh_from_db()
         return Response(
+            {
+                'is_liked': is_liked,
+                'like_count': reply.like_count
+            },
             status=status.HTTP_200_OK
         )
+
+
+   

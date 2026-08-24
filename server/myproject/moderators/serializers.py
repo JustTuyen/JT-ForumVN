@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Bookmark
-from threads.models import Thread, Image
+from .models import Bookmark, Like
+from threads.models import Thread, Image, Reply
 
 class MiniImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,6 +24,18 @@ class MiniThreadSerializer(serializers.ModelSerializer):
             'reply_count',
         ]
         read_only_fields = ['created_at','updated_at'] 
+
+class MiniReplySerializer(serializers.ModelSerializer):
+    images = MiniImageSerializer(many=True, read_only=True)
+    status_name = serializers.ReadOnlyField(source='status.status_name')
+    class Meta:
+        model = Reply
+        fields = [
+            'id', 'name', 'context', 'images',
+            'created_at','updated_at','like_count',
+            'parent_reply', 'created_at'
+        ]
+        read_only_field = ['created_at']
 
 class BookmarkSerializer(serializers.ModelSerializer):
     thread = MiniThreadSerializer(read_only=True)
@@ -52,4 +64,32 @@ class BookmarkSerializer(serializers.ModelSerializer):
     def validate_thread_id(self, value):
         if not value.status or value.status.status_name == 'Suspend':
             raise serializers.ValidationError("This thread is not available.")
+        return value
+
+
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = [
+            'id',
+            'user',
+            'thread',
+            'reply',
+            'created_at',
+        ]
+        read_only_fields = ['created_at',] 
+
+    def validate_user(self, value):
+        if not value.status or value.status.status_name != 'Active':
+            raise serializers.ValidationError("This user account is not active.")
+        return value
+
+    def validate_thread_id(self, value):
+        if not value.status or value.status.status_name == 'Suspend':
+            raise serializers.ValidationError("This thread is not available.")
+        return value
+    
+    def validate_reply_id(self, value):
+        if not value.status or value.status.status_name == 'Suspend':
+            raise serializers.ValidationError("This reply is not available.")
         return value

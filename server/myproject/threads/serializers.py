@@ -154,7 +154,7 @@ class ThreadDataAdminSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'title', 'context', 
             'view_count','like_count',
-            'point_reward',
+            'point_reward','reply_limit',
             'replies','images',
             'user','user_username',
             'category', 'category_name',
@@ -210,11 +210,11 @@ class UserPublicThreadSerializer(serializers.ModelSerializer):
             model = Thread
             fields = [
                 'id', 'name', 'title', 'context', 
+                'category',
+                'category_name',
                 'view_count','like_count',
                 'expire_at',
                 'images',
-                'category',
-                'category_name',
                 'user_username',
                 'replies',
                 'status',

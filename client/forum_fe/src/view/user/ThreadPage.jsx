@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import SideButton from "../../component/SideButton";
 import Navbar from "../../component/Navbar";
 import Footer from "../../component/Footer";
@@ -9,12 +10,19 @@ import SendIcon from '@mui/icons-material/Send';
 import '../css/Thread.css'
 //images
 import FavoriteIcon from '@mui/icons-material/Favorite';
-
+import StarIcon from '@mui/icons-material/Star';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { useEffect, useState } from "react";
 import api from "../../auth/ApiHandle";
 import { useAuth } from "../../auth/AuthContext";
 //
+import * as React from 'react';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Modal from '@mui/material/Modal';
+import Fade from '@mui/material/Fade';
+import {formatDate, modalStyle2} from './profile/style/Modals'
 import { ToastContainer, toast } from 'react-toastify';            
 
 function ThreadImagesGallery({images}){
@@ -36,90 +44,115 @@ function ThreadImagesGallery({images}){
     )
 }
 
-function ThreadRepliesGallery({replies, onSelectReply}){
-    const sortReplies = replies?.slice().sort((a,b)=>
-    new Date(a.created_at) - new Date(b.created_at))
 
-    if(!replies || replies.length == 0)
-        return null
+function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
+    
+    const [likeCount, setLikeCount] = useState(reply?.like_count || 0);
+    const [isLiked, setIsLiked] = useState(reply?.is_liked || false);
+    
+    const handleLike = async()=>{
+        if(!user){
+            toast.warning('please login to like this reply!',{
+                position: 'top-right',
+                autoClose: 1000,
+            })
+            return
+        }
 
-    const handleSelectReply = (reply_id) => {
-        onSelectReply(reply_id);
-        document.getElementById('reply-box')?.scrollIntoView({ behavior: 'smooth' });
-    };
+        const wasLiked = isLiked
+        setIsLiked(!wasLiked)
+        setLikeCount((prev)=>(wasLiked ? Math.max(0, prev-1):prev + 1))
+        try{
+            const {data} = await api.post(`/api/replies/${reply.id}/like_reply/`);
+            if (data.like_count !== undefined) setLikeCount(data.like_count);
+            if (data.is_liked !== undefined) setIsLiked(data.is_liked);
+        
+        } catch (err) {
+            // Rollback on error
+            setIsLiked(wasLiked);
+            setLikeCount((prev) => (wasLiked ? prev + 1 : prev - 1));
 
-
-
-    const scrollToReply = (replyId)=>{
-        const targetElement = document.getElementById(`${replyId}`); 
-        if (targetElement) {
-        // 1. Smoothly scroll into view
-            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            // 2. Add temporary visual highlight effect
-            targetElement.classList.add('bg-purple-100', 'ring-2', 'ring-[#9400D3]');
-            
-            // 3. Remove highlight after 2 seconds
-            setTimeout(() => {
-                targetElement.classList.remove('bg-purple-100', 'ring-2', 'ring-[#9400D3]');
-            }, 2000);
+            const msg = err.response?.data?.detail || 'Failed to update like status.';
+            toast.error(msg, { position: 'top-right', autoClose: 1500 });
         }
     }
 
-    return(
-        <>
-        {sortReplies.map((reply, index) =>(
-        <div className="card p-4 rounded-md"
-        key={reply?.id} id={`${reply.id}`}>
-            {/* thread info */}
-            
+    return (
+        <div className="card p-4 rounded-md" key={reply?.id} id={`${reply?.id}`}>
             <div className="gap-2 thread-info flex justify-start items-center">
-                {/* indexing */}
-                <div className="index-box gap-2 flex" 
-                onClick={() => handleSelectReply(reply?.id)}>
+                <div 
+                    className="index-box gap-2 flex cursor-pointer" 
+                    onClick={() => onSelectReply && onSelectReply(reply?.id)}
+                >
                     <i className="bi bi-chevron-double-right text-[#9400D3]"></i>
-                    <p>{index+2}</p>
+                    <p>{index + 2}</p>
                 </div>
-                <p>{reply?.name} - {reply?.created_at}</p>
-                    {/* thread action */}
+
+                <p>{reply?.name} - {formatDate(reply?.created_at)}</p>
+
                 <div className="flex gap-2 p-2">
                     <div className="flex flex-row items-center">
-                        <IconButton color="secondary" aria-label="add an alarm">
-                            <FavoriteBorderIcon />
+                        <IconButton 
+                            color="secondary" 
+                            aria-label="like reply"
+                            onClick={handleLike}
+                        >
+                            {isLiked ? <FavoriteIcon/> : <FavoriteBorderIcon/>}
                         </IconButton>
-                        <p>({reply?.like_count} likes)</p>
+                        {/* Render actual like count */}
+                        <p>{likeCount} {likeCount === 1 ? 'like' : 'likes'}</p>
                     </div>
+
                     <Button variant="outlined" id="report-btn">
                         Report
                     </Button>
                 </div>
             </div>
+
             <div className="thread-context">
-                <p className="mt-2 mb-8">
+                <p className="mt-2 mb-8 whitespace-pre-line">
                     {reply?.context}
                 </p>
             </div>
-            <ThreadImagesGallery images={reply?.images}/>
 
-            
+            <ThreadImagesGallery images={reply?.images} />
+
             {reply?.parent_reply && (
-                <div className="flex gap-1" onClick={() => scrollToReply(reply.parent_reply)}>
+                <div 
+                    className="flex gap-1 cursor-pointer" 
+                    onClick={() => scrollToReply && scrollToReply(reply.parent_reply)}
+                >
                     <i className="bi bi-chevron-double-right text-[#9400D3]"></i>
                     <p>{reply?.parent_reply}</p>
                 </div>
             )}
-
         </div>
-        ))}
+    );
+}
+
+function ThreadRepliesGallery({
+    replies = [], user, onSelectReply, scrollToReply
+}){
+    return (
+        <>
+            {replies.map((reply, index) => (
+                <ReplyCard
+                    key={reply?.id || index}
+                    reply={reply}
+                    index={index}
+                    user={user}
+                    onSelectReply={onSelectReply}
+                    scrollToReply={scrollToReply}
+                />
+            ))}
         </>
-    )
+    );
 }
 
 function Thread(){
     const {id} = useParams()
     const [thread, setThread] = useState(null)
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [context, setContext] = useState('');
     const [username, setUsername] = useState('');
     const [images, setImages] = useState([]);
@@ -173,8 +206,7 @@ function Thread(){
             });
 
         } catch (err) {
-            setError(err)
-            toast.error(`${error}`, {
+            toast.error(`${err}`, {
                 position: 'top-right',
                 autoClose: 3000,
             });
@@ -184,26 +216,43 @@ function Thread(){
 
     const [likeCount, setLikeCount] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
-   async function fetchThreadDetails() {
+    async function fetchThreadDetails() {
         try {
             setLoading(true);
             const { data } = await api.get(`/api/threads/${id}/`);
             setThread(data);
             
-
             setLikeCount(data.like_count || 0);
             setIsLiked(data.is_liked || false); 
-            
             setLoading(false);
 
         } catch (err) {
 
-            setError('Failed to load thread.');
+            toast.err(`error loading thread: ${err}`,
+            {
+                position: 'top-right',
+                autoClose: 1500,
+            }
+        )
             setLoading(false);
         }
     }
     
+    const scrollToReply = (replyId)=>{
+        const targetElement = document.getElementById(`${replyId}`); 
+        if (targetElement) {
+        // 1. Smoothly scroll into view
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
+            // 2. Add temporary visual highlight effect
+            targetElement.classList.add('bg-purple-100', 'ring-2', 'ring-[#9400D3]');
+            
+            // 3. Remove highlight after 2 seconds
+            setTimeout(() => {
+                targetElement.classList.remove('bg-purple-100', 'ring-2', 'ring-[#9400D3]');
+            }, 2000);
+        }
+    }
     const likingThread = async () => {
         if (!user) {
             toast.warning('Please log in to like this thread.');
@@ -219,12 +268,10 @@ function Thread(){
         try {
             const { data } = await api.post(`/api/threads/${id}/like_thread/`);
             
-            // Re-sync state with accurate backend response
             if (data.like_count !== undefined) setLikeCount(data.like_count);
             if (data.liked !== undefined) setIsLiked(data.liked);
 
         } catch (err) {
-            // Revert Optimistic UI Update on failure
             setIsLiked(wasLiked);
             setLikeCount((prev) => (wasLiked ? prev + 1 : prev - 1));
 
@@ -236,13 +283,63 @@ function Thread(){
         }
     };
 
+    const [note, setNote] = useState('')
+    const [open, setOpen] = React.useState(false);
+    const [selectedThreadId, setSelectedThreadId] = useState(null);
+    const openModal = (threadId) => {
+        setSelectedThreadId(threadId);
+        setOpen(true);
+    };
+    const closeModal = () => {
+        setOpen(false);
+        setSelectedThreadId(null);
+    };
+
+    const handleConfirmBookmark = async () => {
+        await bookmarkThread(selectedThreadId);
+        closeModal();
+    };
+
+    const bookmarkThread = async (id) => {
+        try {
+            await api.post(`/api/threads/${id}/thread_bookmark/`,{
+                note: note
+            });
+
+            toast.success('Thread bookmark successfully!', {
+                position: 'top-right',
+                autoClose: 1000,
+            });
+        } catch (error) {
+            toast.error(`${error}!`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    };
+
+
     useEffect(()=>{
         if (id) {
             fetchThreadDetails();
         }
     }, [id])
     
-    if (loading) return <div>Loading...</div>;
+    if (loading) return(
+        <>
+        <SideButton/>
+        <Navbar/>
+        <div className="min-h-screen">
+            <section className="flex flex-col items-center">
+                <div className="w-[80%]">
+                    <Box sx={{ display: 'flex' }}>
+                        <CircularProgress aria-label="Loading…" />
+                    </Box>
+                </div>
+                </section>
+            </div>
+        </>
+    );
 
     return(
         <>
@@ -269,7 +366,7 @@ function Thread(){
                             className="shadow-lg hover:shadow-2xl 
                             transition-all duration-300" id="navigator-btn"
                             >
-                                {thread?.category_name}
+                                {thread.category_name}
                             </Button>
                         </Link>                   
                     </div>
@@ -281,8 +378,11 @@ function Thread(){
                         <div className="card p-4 rounded-md">
 
                             {/* thread title */}
-                            <div id="thread-title">
+                            <div id="thread-title" className="flex gap-2">
                                 <p>{thread?.title}</p>
+                                <button onClick={() => openModal(thread.id)}>
+                                    <StarIcon className="text-yellow-300"/>
+                                </button>
                             </div>
 
                             {/* thread info */}
@@ -292,7 +392,9 @@ function Thread(){
                                     <i className="bi bi-chevron-double-right text-[#9400D3]"></i>
                                     <p>1</p>
                                 </div>
-                                <p>{thread?.user_username} - {thread?.created_at}</p>
+                                <p>
+                                    {thread?.user_username} - {formatDate(thread?.created_at)}
+                                </p>
                                  {/* thread action */}
                                 <div className="flex gap-2 p-2">
                                     <div className="flex flex-row items-center">
@@ -311,7 +413,7 @@ function Thread(){
 
 
                             <div className="thread-context">
-                                <p className="mt-2 mb-8">
+                                <p className="mt-2 mb-8 whitespace-pre-line">
                                     {thread?.context}
                                 </p>
                                 
@@ -319,8 +421,13 @@ function Thread(){
                             <ThreadImagesGallery images={thread?.images}/>
                         </div>
                         {/* reply card      */}
-                        <ThreadRepliesGallery replies={thread?.replies} onSelectReply={setParentReplyId}/>
-                           
+                        {/* <ThreadRepliesGallery replies={thread?.replies} onSelectReply={setParentReplyId}/> */}
+                         <ThreadRepliesGallery 
+                        replies={thread?.replies} 
+                        user={user} 
+                        onSelectReply={(id) => setParentReplyId(id)}
+                        scrollToReply={scrollToReply}
+                    />  
                     </div>
 
                     {thread?.status_name === 'Active' ? (
@@ -432,6 +539,53 @@ function Thread(){
             </section>
         </div>
         <Footer/>
+        <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={open}
+            onClose={closeModal}
+            closeAfterTransition
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+            backdrop: {
+                timeout: 500,
+            },
+            }}
+        >
+            <Fade in={open}>
+                <Box  sx={modalStyle2}>
+                    <div className="flex justify-center
+                    text-[24px] lg:text-[32px] text-[#9400D3] font-bold">
+                        <p>Bookmark thread</p>
+                    </div>
+                    <div className="p-2">
+                        <div className="px-4 py-2 justify-center flex flex-col gap-2">
+                            <p>Are you sure you want to bookmark this thread?</p>
+                            <textarea name="" id=""
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            className="w-full post-thread bg-white rounded-md px-3 py-2 
+                            focus:outline-none focus:ring-2 
+                            border text-[#9400D3] border-[#9400D3]"
+                            placeholder="Leave a note if you want">
+
+                            </textarea>
+                        </div>
+
+                        <div className="flex justify-center gap-4">
+                            <Button variant="outlined" color="error"  
+                            onClick={closeModal}>
+                                never mind
+                            </Button>
+                            <Button id="update-btn"
+                            onClick={handleConfirmBookmark}>
+                                Yes
+                            </Button>
+                        </div>
+                    </div>
+                </Box>
+            </Fade>
+        </Modal>
         </>
     )
 }

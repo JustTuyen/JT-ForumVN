@@ -329,3 +329,8 @@
         font-size: 18px;
     }
 }
+
+.menus{
+    display: flex;
+    align-items: center;
+}
