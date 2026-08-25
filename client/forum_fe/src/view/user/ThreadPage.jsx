@@ -23,7 +23,9 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import {formatDate, modalStyle2} from './profile/style/Modals'
-import { ToastContainer, toast } from 'react-toastify';            
+import { ToastContainer, toast } from 'react-toastify';     
+import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 
 function ThreadImagesGallery({images}){
     if(!images || images.length == 0)
@@ -133,6 +135,7 @@ function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
 function ThreadRepliesGallery({
     replies = [], user, onSelectReply, scrollToReply
 }){
+    
     return (
         <>
             {replies.map((reply, index) => (
@@ -420,15 +423,23 @@ function Thread(){
                             </div>
                             <ThreadImagesGallery images={thread?.images}/>
                         </div>
-                        {/* reply card      */}
-                        {/* <ThreadRepliesGallery replies={thread?.replies} onSelectReply={setParentReplyId}/> */}
-                         <ThreadRepliesGallery 
+                        <ThreadRepliesGallery 
                         replies={thread?.replies} 
                         user={user} 
                         onSelectReply={(id) => setParentReplyId(id)}
-                        scrollToReply={scrollToReply}
-                    />  
+                        scrollToReply={scrollToReply}/>
                     </div>
+
+                    {thread?.status_name === 'Active' &&
+                    <div className="flex justify-center m-4 rounded-md
+                    shadow-md
+                    p-4 bg-[#FFB6C1]">
+                        <KeyboardDoubleArrowRightIcon className="text-[#D6336C]"/>
+                        <p className="text-[#D6336C]">The thread will be deleted around {formatDate(thread.expire_at)}</p>
+                        <KeyboardDoubleArrowLeftIcon className="text-[#D6336C]"/>
+                    </div>
+                    }
+
 
                     {thread?.status_name === 'Active' ? (
                         <div className="pb-10">
@@ -445,7 +456,7 @@ function Thread(){
                                         <form action=""  onSubmit={createReply}>
                                         {/* name */}
                                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                                <div className="w-full md:w-24 post-label shrink-0">
                                                     <p className="font-bold text-left md:text-right text-[#9400D3]">
                                                     Name:
                                                     </p>
@@ -476,7 +487,7 @@ function Thread(){
                                                 </div>
                                             )}
                                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                                <div className="w-full md:w-24 post-label shrink-0">
                                                     <p className="font-bold text-left md:text-right text-[#9400D3]">
                                                     Content:
                                                     </p>
@@ -493,7 +504,7 @@ function Thread(){
 
                                             {/* file */}
                                             <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                                                <div className="w-full md:w-24 post-label flex-shrink-0">
+                                                <div className="w-full md:w-24 post-label shrink-0">
                                                     <p className="font-bold text-left md:text-right text-[#9400D3]">
                                                     Images:
                                                     </p>

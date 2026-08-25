@@ -167,10 +167,12 @@
 }
 
 #thread-thumbnail{
-    height: 10rem;
+    height: auto;
     width: 10rem;
     border: #9400D3 1px solid;
     border-radius: 16px;
+    object-fit: scale-down;
+    object-position: center;
 }
 
 .thread-title{
@@ -193,7 +195,7 @@
 
 
 .date-info{
-    font-size: 16px;
+    font-size: 11px;
 }
 
 .info-archive{

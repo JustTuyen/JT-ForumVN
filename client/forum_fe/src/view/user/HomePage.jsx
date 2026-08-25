@@ -15,7 +15,10 @@ import SideButton from "../../component/SideButton";
 import { useEffect, useState } from "react";
 import api from "../../auth/ApiHandle";
 import { useAuth } from "../../auth/AuthContext";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+
 //toatify
 import { ToastContainer, toast } from 'react-toastify';
 
@@ -26,14 +29,14 @@ function Home(){
     //creat forum
     const [categories, setCategories] = useState([]);
     const [title, setTitle] = useState('');
-    const [username, setUsername] = useState('');
+    const [username, setUsername] = useState('Anonymous Melon');
     const [context, setContext] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('default');
     const [images, setImages] = useState([]);
     const [imageError, setImageError] = useState('');
     const [submitError, setSubmitError] = useState('');
     const {user, loading} = useAuth()
-        
+    const navigator = useNavigate()
 
     useEffect(()=>{
         async function fetchCategories() {
@@ -109,7 +112,28 @@ function Home(){
 
     } 
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) {
+        return(
+            <>
+                <div className="flex justify-center p-8">
+                    <Box sx={{ display: 'flex' }}>
+                        <CircularProgress aria-label="Loading…" />
+                    </Box>
+                </div>
+            </>
+        )
+    }
+
+    
+
+    const surprisedMe = () =>{
+        const randomID = Math.floor(Math.random()*20) + 1
+        navigator(`/threads/${randomID}`)
+    }
+
+    const HotTopic = () =>{
+        navigator(`/menu`)
+    }
 
     return(
         <>
@@ -133,7 +157,7 @@ function Home(){
                                 startIcon={<LocalFireDepartmentIcon />}
                                 className="shadow-lg hover:shadow-2xl 
                                 transition-all duration-300 h-full" id="heading-btn"
-                                >
+                                onClick={HotTopic}>
                                 Top Threads
                                 </Button>
                             </div>
@@ -157,7 +181,7 @@ function Home(){
                                 startIcon={<AccessAlarmIcon />}
                                 className="shadow-lg hover:shadow-2xl 
                                 transition-all duration-300 h-full" id="heading-btn"
-                                >
+                                onClick={HotTopic}>
                                 New Arrivals
                                 </Button>
                             </div>
@@ -169,7 +193,7 @@ function Home(){
                                 startIcon={<TipsAndUpdatesIcon />}
                                 className="shadow-lg hover:shadow-2xl 
                                 transition-all duration-300 h-full" id="heading-btn"
-                                >
+                                onClick={surprisedMe}>
                                 Surprise Me
                                 </Button>
                             </div>

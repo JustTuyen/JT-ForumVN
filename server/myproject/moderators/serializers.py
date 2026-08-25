@@ -11,31 +11,30 @@ class MiniImageSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at'] 
 
-         
+
+class MiniReplySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reply
+        fields = [
+            'id'
+        ]
+        read_only_fields = ['id']
+
 class MiniThreadSerializer(serializers.ModelSerializer):
     images = MiniImageSerializer(many=True, read_only=True)
     status_name = serializers.ReadOnlyField(source='status.status_name')
-    reply_count = serializers.IntegerField(read_only=True)
+    reply_count = serializers.IntegerField(source='thread_reply_count', read_only=True)
+    replies = MiniReplySerializer(many=True,read_only=True)
     class Meta:
         model = Thread
         fields = [
             'id','title','context','status_name',
             'images','created_at','updated_at',
-            'reply_count',
+            'reply_count','replies'
         ]
         read_only_fields = ['created_at','updated_at'] 
 
-class MiniReplySerializer(serializers.ModelSerializer):
-    images = MiniImageSerializer(many=True, read_only=True)
-    status_name = serializers.ReadOnlyField(source='status.status_name')
-    class Meta:
-        model = Reply
-        fields = [
-            'id', 'name', 'context', 'images',
-            'created_at','updated_at','like_count',
-            'parent_reply', 'created_at'
-        ]
-        read_only_field = ['created_at']
+
 
 class BookmarkSerializer(serializers.ModelSerializer):
     thread = MiniThreadSerializer(read_only=True)

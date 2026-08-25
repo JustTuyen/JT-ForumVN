@@ -5,7 +5,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }){
     const [user, setUser] = useState(null);
     const [loading, setLoading ] = useState(true)
-
+    
     const fetchCurrentUser = async() =>{
         try{
             const {data} = await api.get('/api/users/me/')
@@ -15,12 +15,17 @@ export function AuthProvider({ children }){
         } finally{
             setLoading(false)
         }
+        
     }
     const login = async (username, password) => {
         const { data } = await api.post('/api/token/', { username, password });
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
-        await fetchCurrentUser();   // <-- the "background api/profile call" you're asking about
+       
+       
+        const { data: profile } = await api.get('/api/users/me/');
+        setUser(profile);
+        return profile;
     };
 
     const logout = () =>{

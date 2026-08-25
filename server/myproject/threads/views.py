@@ -57,12 +57,9 @@ class ThreadViewSet(viewsets.ModelViewSet):
     queryset = Thread.objects.select_related('user', 'category', 'status').prefetch_related('images',
         Prefetch(
             'replies',
-            queryset=Reply.objects.order_by('-created_at')
+            queryset=Reply.objects.order_by('created_at')
         )).all()
     
-    # serializer_class = UserPublicThreadSerializer   
-    # permission_classes = [IsAdmin]
-
     def get_serializer_class(self):
         if self.action == 'create':
             return CreateThreadSerializer
@@ -182,6 +179,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
         serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
         return Response(serializer.data)
+
 
     #filtering a minimal threads listing, sorting through status, category and date
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
@@ -329,16 +327,6 @@ class ThreadViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
         )
             
-
-
-
-
-
-
-
-
-
-
 
 
 

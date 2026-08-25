@@ -1,11 +1,20 @@
 import icon from '../assets/icon.png'
 import '../component/Navbar.css'
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 import { useAuth } from '../auth/AuthContext';
+import { useState } from 'react';
 
 function Navbar(){
     const { user,logout } = useAuth();
+    const [keyword, setKeyword] = useState('')
+    const navigator = useNavigate()
+
+    const handleSearch = (e) =>{
+        e.preventDefault()
+        if (!keyword.trim()) return;
+        navigator(`/search?q=${encodeURIComponent(keyword)}`)
+    }
 
     return(
        <>
@@ -35,17 +44,21 @@ function Navbar(){
                         </div>
                             ) : (
                             /* v-else condition */
-                        <Link to="/login" className="btn btn-primary">
+                        <Link to="/login" className="btn btn-primary text-white">
                             Log In
                         </Link>
                     )}
 
                     <div className="flex">
-                        <input type="text"
-                        placeholder="search..." className="search-input rounded-l-lg"/>
-                        <button className="search-btn rounded-r-lg">
-                            <i className="bi bi-search"></i>
-                        </button>
+                        <form action="" onSubmit={handleSearch}>
+                            <input type="text" 
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
+                            placeholder="search..." className="search-input rounded-l-lg"/>
+                            <button className="search-btn rounded-r-lg" type='submit'>
+                                <i className="bi bi-search"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

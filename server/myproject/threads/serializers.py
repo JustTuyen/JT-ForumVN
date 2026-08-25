@@ -4,10 +4,13 @@ from users.models import User
 from django.db import transaction
 from django.db.models import F
 class CategorySerializer(serializers.ModelSerializer):
+    status_name = serializers.ReadOnlyField(source='status.status_name')
+
     class Meta:
         model = Category
         fields = [
-            'id','title','description','status','created_at','updated_at'
+            'id','title','description','status','created_at','updated_at',
+            'status_name'
         ]
         read_only_fields = ['created_at', 'updated_at']
 
@@ -139,7 +142,7 @@ class MiniReplySerializer(serializers.ModelSerializer):
             'created_at','updated_at','like_count',
             'parent_reply', 'created_at'
         ]
-        read_only_field = ['created_at']
+        read_only_fields = ['created_at']
 
 
 #Admin 
@@ -161,7 +164,7 @@ class ThreadDataAdminSerializer(serializers.ModelSerializer):
             'status','status_name',
             'created_at','updated_at'
         ]
-        read_only_fields = ['created_at','updated_at']
+        read_only_fields = ['created_at']
 
 class ThreadUpdateAdminSerializer(serializers.ModelSerializer):
     class Meta:
@@ -188,9 +191,10 @@ class ThreadDataModSerializer(serializers.ModelSerializer):
             'category_name',
             'user_username',
             'status_name',
-            'created_at','updated_at'
+            'created_at','updated_at',
+            'expire_at'
         ]
-        read_only_fields = ['created_at','updated_at']
+        read_only_fields = ['created_at']
 
 class ThreadUpdateModSerializer(serializers.ModelSerializer):
     class Meta:
@@ -219,9 +223,10 @@ class UserPublicThreadSerializer(serializers.ModelSerializer):
                 'replies',
                 'status',
                 'status_name',
-                'created_at','updated_at'
+                'created_at','updated_at',
+                'expire_at'
             ]
-            read_only_fields = ['created_at','updated_at']
+            read_only_fields = ['created_at']
     
 class ThreadUpdateUserSerializer(serializers.ModelSerializer):
     class Meta:

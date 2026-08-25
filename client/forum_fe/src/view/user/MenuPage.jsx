@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import Navbar from "../../component/Navbar";
 import Footer from "../../component/Footer";
 import '../css/Menu.css'
@@ -25,7 +26,7 @@ function Menu(){
     const [ordering, setOrdering] = useState('-created_at');
     const [isShuffled, setIsShuffled] = useState(false);
     const [title, setTitle] = useState('');
-    const [username, setUsername] = useState('');
+    const [username, setUsername] = useState('Anonymous Melon');
     const [context, setContext] = useState('');
     const [selectedCategory , setSelectedCategory] = useState('all');
     const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
@@ -227,10 +228,12 @@ function Menu(){
                             </Button>
                             <div className="" id="nav-select">
                                 <select onChange={(e) => handleCategoryFilterChange(e.target.value)}>
-                                    <option value="default" selected>Pick a category</option>
+                                    <option value="default">Pick a category</option>
                                     <option value="all" selected>All Categories</option>
                                     {categories.map((category) => (
-                                        <option key={category.id} value={category.id}>{category.title}</option>
+                                        <option 
+                                        disabled={category.status_name === 'Suspend'}
+                                        key={category.id} value={category.id}>{category.title}</option>
                                     ))} 
                                 </select>
                             </div>
@@ -248,8 +251,8 @@ function Menu(){
                                                 <img 
                                                 src={thread.images?.find((img)=>
                                                 img.is_thumbnail)?.file || forumThumbnail} 
-                                                alt="[object Object]" id="thumbnail-img"
-                                                className="shadow-sm rounded-md"/>
+                                                alt="[object Object]"
+                                                className="shadow-sm rounded-md thumbnail-img"/>
                                             </div>
                                             <div class="col-span-2 p-2">
                                                 <div id="card-title">
@@ -285,7 +288,7 @@ function Menu(){
 
                         {/* rule board */}
                         <div class="py-2">
-                            <div className="card bg-white w-[100%] p-2 border-[#9400D3] border-1 rounded-md">
+                            <div className="card bg-white w-full p-2 border-[#9400D3] border rounded-md">
                                 <p className="font-bold">Note: Thread when post can not be changed</p>
                                 <ul className="px-5">
                                     <ol>1. rule 1</ol>
@@ -343,7 +346,7 @@ function Menu(){
                                     <div className="p-2">
                                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
                                             {/* Label: Takes auto width on mobile, fixed width on desktop */}
-                                            <div className="w-full md:w-24 post-label flex-shrink-0">
+                                            <div className="w-full md:w-24 post-label shrink-0">
                                                 <p className="font-bold text-left md:text-right text-[#9400D3]">
                                                 Title:
                                                 </p>
@@ -365,7 +368,7 @@ function Menu(){
 
                                         {/* name */}
                                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                                            <div className="w-full md:w-24 post-label flex-shrink-0">
+                                            <div className="w-full md:w-24 post-label shrink-0">
                                                 <p className="font-bold text-left md:text-right text-[#9400D3]">
                                                 Name:
                                                 </p>
@@ -385,7 +388,7 @@ function Menu(){
 
                                         {/* category */}
                                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                                            <div className="w-full md:w-24 post-label flex-shrink-0">
+                                            <div className="w-full md:w-24 post-label shrink-0">
                                                 <p className="font-bold text-left md:text-right text-[#9400D3]">
                                                 Category:
                                                 </p>
@@ -399,7 +402,9 @@ function Menu(){
                                                 onChange={(e) => setSelectedCategory(e.target.value)}>
                                                     <option value="default" selected>Pick a category</option>
                                                     {categories.map((category) => (
-                                                        <option key={category.id} value={category.id}>{category.title}</option>
+                                                        <option 
+                                                        disabled={category.status_name === 'Suspend'}
+                                                        key={category.id} value={category.id}>{category.title}</option>
                                                     ))} 
                                                 </select>
                                             </div>
@@ -407,7 +412,7 @@ function Menu(){
 
                                         {/* context */}
                                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-2">
-                                            <div className="w-full md:w-24 post-label flex-shrink-0">
+                                            <div className="w-full md:w-24 post-label shrink-0">
                                                 <p className="font-bold text-left md:text-right text-[#9400D3]">
                                                 Content:
                                                 </p>
@@ -428,7 +433,7 @@ function Menu(){
                                         <div className="flex flex-col md:flex-row items-start md:items-center 
                                         gap-2 md:gap-4 py-2"
                                         >
-                                            <div className="w-full md:w-24 post-label flex-shrink-0">
+                                            <div className="w-full md:w-24 post-label shrink-0">
                                                 <p className="font-bold text-left md:text-right text-[#9400D3]">
                                                 Images:
                                                 </p>

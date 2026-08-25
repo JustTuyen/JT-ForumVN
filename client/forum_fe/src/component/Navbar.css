@@ -134,17 +134,18 @@
 
     .search-input{
         background-color: white;
-        /* border-radius: 16px; */
         width: 15rem; 
         font-size: 16px;
         color: #9400D3;
+        border: white 1px solid;
         font-weight: bold;
         padding: 5px 10px; 
         cursor: pointer;
     }
 
     .search-btn{
-        border: white 1px solid;
+
+        border: none;
         padding: 5px 15px;
         cursor: pointer;
         color: white;

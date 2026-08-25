@@ -37,7 +37,7 @@ function ProfileOverview(){
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
-     const [open1, setOpen1] = React.useState(false);
+    const [open1, setOpen1] = React.useState(false);
     const handleOpen1 = () => setOpen1(true);
     const handleClose1 = () => setOpen1(false);
     //
@@ -220,7 +220,7 @@ function ProfileOverview(){
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 py-1">
                     {/* Gender */}
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
-                        <label htmlFor="gender" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                        <label htmlFor="gender" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] shrink-0">
                             Gender:
                             </label>
                         <input 
@@ -235,7 +235,7 @@ function ProfileOverview(){
 
                     {/* Birthday */}
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
-                        <label htmlFor="birthday" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                        <label htmlFor="birthday" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] shrink-0">
                             Birthday:
                         </label>
                         <input 
@@ -293,7 +293,7 @@ function ProfileOverview(){
                     <form action="" className="p-4"  onSubmit={updateProfile}>
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
                             <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right 
-                            text-[#9400D3] flex-shrink-0">
+                            text-[#9400D3] shrink-0">
                                 Email:
                             </label>
                             <div className="w-full flex-1">
@@ -307,7 +307,7 @@ function ProfileOverview(){
                             </div>
                         </div>
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
-                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] shrink-0">
                                 Username:
                             </label>
                             <div className="w-full flex-1">
@@ -321,7 +321,7 @@ function ProfileOverview(){
                             </div>
                         </div>
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
-                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] shrink-0">
                                 Description:
                             </label>
                             <div className="w-full flex-1">
@@ -335,7 +335,7 @@ function ProfileOverview(){
                             </div>
                         </div>
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 py-1">
-                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] flex-shrink-0">
+                            <label htmlFor="username" className="w-full md:w-28 font-bold text-left md:text-right text-[#9400D3] shrink-0">
                                 Gender:
                             </label>
                             <div className="w-full flex-1">
@@ -373,7 +373,6 @@ function ProfileOverview(){
             </Fade>
         </Modal>
         </div>
-
         <div>
             <ToastContainer/>
             <Modal
@@ -613,7 +612,8 @@ function ThreadOverview(){
                 </select>
             </div>
 
-            <div className="py-10">
+            <div className="py-2">
+                {threads.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
                     {threads.map((thread) =>(                    
                     <div className="card shadow-md">
@@ -621,9 +621,11 @@ function ThreadOverview(){
                             <img 
                             src={thread.images?.find((img)=>
                             img.is_thumbnail)?.file || defaultImg} 
-                            alt="[object Object]"
+                            alt={thread.images?.find((img)=>
+                            img.alt_text) || "thumbnail"} 
                             className="shadow-sm rounded-md"
-                            id='thread-thumbnail'/>
+                            id='thread-thumbnail'
+                            />
                             <div className="thread-title">
                                 <p>{thread.title}</p>
                             </div>
@@ -633,11 +635,13 @@ function ThreadOverview(){
                          justify-between">
                             <div className="flex gap-2 items-end p-2">
                                 <p className="date-info">
-                                    <span className="text-[#9400D3] font-bold">created:
-                                        </span> {formatDate(thread.created_at) }
+                                    <span className="text-[#9400D3] font-bold">
+                                        created: 
+                                    </span> {formatDate(thread.created_at) }
                                     -
-                                    <span className="text-[#9400D3] font-bold">created:
-                                        </span>  {formatDate(thread.updated_at) }
+                                    <span className="text-[#9400D3] font-bold">
+                                        updated: 
+                                    </span>{formatDate(thread.updated_at) }
                                 </p>
                                 <div className="flex gap-2">
                                     <div className="card-info info-archive">
@@ -671,6 +675,12 @@ function ThreadOverview(){
                     </div>
                     ))}
                 </div>
+                ):(
+                    <div className="bg-white p-4
+                    flex justify-center rounded-md shadow-md">
+                        <p className="text-[#9400D3] font-bold">You haven't post any thread yet!</p>
+                    </div>
+                )}
             </div>
         </div>
         <Modal
@@ -761,6 +771,7 @@ function BookMarks(){
     const [ordering, setOrdering] = useState('-created_at');
     const [statusSelectValue, setStatusSelectValue] = useState('all');
 
+
     const fetchBookmark = useCallback(async () => {
         try {
             const params = new URLSearchParams();
@@ -781,6 +792,74 @@ function BookMarks(){
             });
         }
     }, [ordering, statusSelectValue]);
+
+    
+    const [open, setOpen] = React.useState(false);
+    const [selectedThreadId, setSelectedThreadId] = useState(null);
+
+    const openModal = (threadId) => {
+        setSelectedThreadId(threadId);
+        setOpen(true);
+    };
+    const closeModal = () => {
+        setOpen(false);
+        setSelectedThreadId(null);
+    };
+
+    const handleConfirmDeleteBookmark = async () => {
+        await DeleteBookmark(selectedThreadId);
+        closeModal();
+    };
+
+    const DeleteBookmark = async (id) => {
+        try {
+            await api.delete(`/api/bookmarks/${id}/`);
+            toast.success('Bookmark delete successfully!', {
+                position: 'top-right',
+                autoClose: 1000,
+            });
+        } catch (error) {
+            toast.error(`${error}!`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    };
+
+    const [open1, setOpen1] = React.useState(false);
+    
+    const openModal1 = (threadId) => {
+        setSelectedThreadId(threadId);
+        setOpen1(true);
+    };
+    const closeModal1 = () => {
+        setOpen1(false);
+        setSelectedThreadId(null);
+    };
+
+    const handleConfirmPatchBookmark = async () => {
+        await PatchBookmark(selectedThreadId);
+        closeModal1();
+    };
+    const [note, setNote] = useState('')
+
+    const PatchBookmark = async (id) => {
+        try {
+            await api.patch(`/api/bookmarks/${id}/`,{
+                note: note
+            });
+            toast.success('Bookmark updated successfully!', {
+                position: 'top-right',
+                autoClose: 1000,
+            });
+        } catch (error) {
+            toast.error(`${error}!`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    };
+
 
 
 
@@ -829,7 +908,7 @@ function BookMarks(){
                     </Box>
                 </div>
                 </section>
-            </div>
+        </div>
         </>
     );
     return(
@@ -852,6 +931,7 @@ function BookMarks(){
             </div>
 
             <div className="py-2">
+                {bookmarks.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
                     {bookmarks.map((bookmark) =>(
                         <div className="card shadow-md">
@@ -874,7 +954,7 @@ function BookMarks(){
                                         <span className="text-[#9400D3] font-bold">created:</span> 
                                         {formatDate(bookmark.created_at) }
                                         -
-                                        <span className="text-[#9400D3] font-bold">created:</span> 
+                                        <span className="text-[#9400D3] font-bold">updated:</span> 
                                         {formatDate(bookmark.updated_at) }
                                     </p>
                                     <div className="flex gap-2">
@@ -884,20 +964,24 @@ function BookMarks(){
                                         {/* display the amount of reply */}
                                         <div className="card-info info-reply gap-1">
                                             <i class="bi bi-chat-dots"></i>
-                                            {bookmark.thread.reply_count}
+                                            {bookmark.thread.replies.length}
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex flex-row justify-end items-end gap-2">
                                     <Link to={`/threads/${bookmark.thread.id}`}>
-                                        <Button variant="outlined" className="shadow-md" id='thread-btn-1'>
+                                        <Button variant="outlined"
+                                        className="shadow-md" id='thread-btn-1'>
                                             View
                                         </Button>
                                     </Link>
-                                    <Button className="shadow-md" id='thread-btn-3'>
+                                    <Button className="shadow-md" id='thread-btn-3'
+                                    onClick={() => openModal1(bookmark.id)}>
                                         Edit
                                     </Button>
-                                    <Button variant="delete" className="shadow-md" id='thread-btn-2'>
+                                    <Button variant="delete"
+                                    onClick={() => openModal(bookmark.id)} 
+                                     className="shadow-md" id='thread-btn-2'>
                                         Delete
                                     </Button>
                                 </div>
@@ -914,9 +998,95 @@ function BookMarks(){
                             </div>
                         </div>
                     ))}
-                </div>
+                </div> ):(
+                    <div className="bg-white p-4
+                    flex justify-center rounded-md shadow-md">
+                        <p className="text-[#9400D3] font-bold">No bookmark found.</p>
+                    </div>
+                )}
             </div>
         </div>
+        <ToastContainer/>
+        <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={open}
+            onClose={closeModal}
+            closeAfterTransition
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+            backdrop: {
+                timeout: 500,
+            },
+            }}
+        >
+            <Fade in={open}>
+                <Box  sx={modalStyle2}>
+                    <div className="flex justify-center
+                    text-[24px] lg:text-[32px] text-red-600 font-bold">
+                        <p>Delete Bookmark</p>
+                    </div>
+                    <div className="">
+                        <div className="flex p-4 justify-center">
+                            are you sure you want to delete this bookmark?
+                        </div>
+                        <div className="flex justify-center gap-4">
+                            <Button variant="outlined" color="error"  
+                            onClick={closeModal}>
+                                never mind
+                            </Button>
+                            <Button id="update-btn"
+                            onClick={handleConfirmDeleteBookmark}>
+                                Yes
+                            </Button>
+                        </div>
+                    </div>
+                </Box>
+            </Fade>
+        </Modal>
+        <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={open1}
+            onClose={closeModal1}
+            closeAfterTransition
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+            backdrop: {
+                timeout: 500,
+            },
+            }}
+        >
+            <Fade in={open1}>
+                <Box  sx={modalStyle2}>
+                    <div className="flex justify-center
+                    text-[24px] lg:text-[32px] text-[#9400D3] font-bold">
+                        <p>Update Bookmark</p>
+                    </div>
+                    <div className="">
+                        <div className="flex-col gap-2 p-2">
+                            <p className="m-2">are you sure you want to update this bookmark?</p>
+                            <textarea name="" id="" placeholder="Enter your thread context"
+                            className="w-full post-thread bg-white rounded-md px-3 py-2 
+                            focus:outline-none focus:ring-2 
+                            border text-[#9400D3] border-[#9400D3]"
+                            onChange={(e) => setNote(e.target.value)}>
+                            </textarea>
+                        </div>
+                        <div className="flex justify-center gap-4">
+                            <Button variant="outlined" color="error"  
+                            onClick={closeModal1}>
+                                never mind
+                            </Button>
+                            <Button id="update-btn"
+                            onClick={handleConfirmPatchBookmark}>
+                                Yes
+                            </Button>
+                        </div>
+                    </div>
+                </Box>
+            </Fade>
+        </Modal>
         </>
     )
 }

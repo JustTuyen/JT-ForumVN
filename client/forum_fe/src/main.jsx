@@ -20,6 +20,7 @@ import DashBoard from './view/admin/DashBoardPage.jsx';
 import ThreadManager from './view/admin/ThreadManager.jsx';
 import User from './view/user/UserPage.jsx';
 import History from './view/user/profile/HistoryPage.jsx';
+import About from './view/user/AboutPage.jsx'
 //
 import { AuthProvider } from './auth/AuthContext.jsx';
 //
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
   {path:'/profile', element:<Profile/>},
   {path:'/user', element:<User/>},
   {path:'/history', element:<History/>},
+  {path:'/about', element:<About/>},
   // admin
   {path:'/dashboard', element:<DashBoard/>},
   {path:'/dashboard/thread', element:<ThreadManager/>},

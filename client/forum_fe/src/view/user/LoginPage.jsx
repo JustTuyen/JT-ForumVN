@@ -22,8 +22,17 @@ function Login(){
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            await login(username, password);
-            navigate('/menu');
+            const profile = await login(username, password);
+            if (profile.role === 'moderator') {
+                navigate('/dashboard');
+            } 
+            
+            if (profile.role === 'admin') {
+                navigate('/dashboard');
+            }
+            else {
+                navigate('/');
+            }
         } catch (err) {
             setError('Invalid email or password.');
             console.log(err)
@@ -40,7 +49,7 @@ function Login(){
                 <div className="grid grid-cols-1 md:grid-cols-2 ">
                     <div className="flex justify-end">
                         <img src={SideBanner} alt="side banner" id="side-banner"
-                        className="w-full h-full object-cover max-h-[500px]"/>
+                        className="w-full h-full object-cover max-h-125"/>
                     </div>
                     <div className="bg-white flex flex-col items-center 
                     justify-center" id="side-form">
