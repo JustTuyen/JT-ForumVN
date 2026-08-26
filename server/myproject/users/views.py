@@ -11,15 +11,15 @@ from .serializers import (
     UserProfileSerializer, UserPublicDataSerializer, 
     UserUpdateImageSerializer, UserUpdatePasswordSerializer, UserUpdateProfileSerializer
 )
+from threads.serializers import ListingThreadSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-# from rest_framework.views import APIView
-# from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Plan
 from rest_framework.parsers import MultiPartParser, FormParser
-from threads.models import Image
+from threads.models import Image, Thread
+from django.db.models import Q, Count, Prefetch,F
 
 # Create your views here.
 class PlanViewSet(viewsets.ModelViewSet):
@@ -98,15 +98,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return UserUpdateProfileSerializer
 
         if self.action == 'password':
-            sender = getattr(self.request, 'user', None)          
-            try:
-                target = self.get_object()
-            except Exception:
-                return UserUpdateProfileSerializer           
-            if target == sender:
-                return UserUpdateProfileSerializer
-            #fallback        
-            return UserUpdateProfileSerializer
+            return UserUpdatePasswordSerializer
         
         if self.action == 'retrieve':
             sender = getattr(self.request, 'user', None)
@@ -156,7 +148,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'password':
             return [permissions.IsAuthenticated()]
         
-        if self.action == 'profile':
+        if self.action in ['profile','threads']:
             return [permissions.AllowAny()]
     
         return [IsAdmin()]
@@ -220,5 +212,31 @@ class UserViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    def threads(self, request, pk=None):
+        target_user = self.get_object()
+        threads = (
+            Thread.objects
+            .filter(user=target_user)
+            .select_related('status')
+            .prefetch_related('images')
+            .annotate(reply_count=Count('replies', distinct=True))
+        )
+
+        category_id = request.query_params.get('category')
+        if category_id:
+            threads = threads.filter(category_id=category_id)
+
+        ordering = request.query_params.get('ordering', '-created_at')
+        if ordering.lstrip('-') in ['created_at', 'view_count', 'like_count', 'title']:
+            threads = threads.order_by(ordering)
+
+        page = self.paginate_queryset(threads)
+        if page is not None:
+            serializer = ListingThreadSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
+        return Response(serializer.data)
     
 

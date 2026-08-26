@@ -145,34 +145,35 @@ class MiniImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
         fields = [
-            'id','file','alt_text','is_thumbnail','created_at','display_order'
+            'id','file','alt_text','is_thumbnail','display_order'
         ]
-        read_only_fields = ['created_at'] 
+        read_only_fields = ['id'] 
 #1 thread
+class MiniReplySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reply
+        fields = [
+            'id',
+        ]
+        read_only_fields = ['id']
+
 class MiniThreadSerializer(serializers.ModelSerializer):
     images = MiniImageSerializer(many = True, read_only = True)
+    status_name = serializers.ReadOnlyField(source='status.status_name')
+    replies = MiniReplySerializer(many=True, read_only = True)
+
     class Meta:
         model = Thread
         fields = [
             'id', 'title','context',
-            'view_count','like_count',
-            'status',
+            'status','status_name',
+            'replies',
             'images',
             'created_at','updated_at'
         ]
         read_only_fields = ['created_at'] 
 #2 reply
-class MiniReplySerializer(serializers.ModelSerializer):
-    images = MiniImageSerializer(many = True, read_only = True)
-    class Meta:
-        model = Reply
-        fields = [
-            'id', 'context',
-            'parent_reply',
-            'status','like_count',
-            'images',
-            'created_at'
-        ]
+
 class UserDataAdminSerializer(serializers.ModelSerializer):
     threads = MiniThreadSerializer(many = True, read_only = True)
     replies = MiniReplySerializer(many = True, read_only = True)
@@ -257,7 +258,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 #view other user page:
 class UserPublicDataSerializer(serializers.ModelSerializer):
-    threads = MiniThreadSerializer(many = True, read_only = True)
     class Meta:
         model = User
         fields = [
@@ -265,7 +265,7 @@ class UserPublicDataSerializer(serializers.ModelSerializer):
             'description','gender',
             'birth_date',
             'profile_image',
-            'threads','role',
+            'role',
             'created_at',
         ]
         read_only_fields = ['created_at'] 

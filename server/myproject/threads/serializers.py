@@ -138,7 +138,7 @@ class MiniReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Reply
         fields = [
-            'id', 'name', 'context', 'images',
+            'id', 'name', 'context', 'images','user',
             'created_at','updated_at','like_count',
             'parent_reply', 'created_at'
         ]
@@ -189,7 +189,7 @@ class ThreadDataModSerializer(serializers.ModelSerializer):
             'expire_at', 'reply_limit',
             'images','replies',
             'category_name',
-            'user_username',
+            'user_username','user',
             'status_name',
             'created_at','updated_at',
             'expire_at'
@@ -219,7 +219,7 @@ class UserPublicThreadSerializer(serializers.ModelSerializer):
                 'view_count','like_count',
                 'expire_at',
                 'images',
-                'user_username',
+                'user_username','user',
                 'replies',
                 'status',
                 'status_name',
@@ -328,6 +328,6 @@ class PublicReplySerializer(serializers.ModelSerializer):
         model = Reply
         fields = [
             'id','name','context','images'
-            'created_at',
+            'created_at','user',
         ]
         read_only_fields = ['id']

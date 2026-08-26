@@ -2,7 +2,7 @@
 import SideButton from "../../component/SideButton";
 import Navbar from "../../component/Navbar";
 import Footer from "../../component/Footer";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { Button,IconButton  } from "@mui/material";
 // import {Card, CardActionArea} from "@mui/material";
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -26,6 +26,8 @@ import {formatDate, modalStyle2} from './profile/style/Modals'
 import { ToastContainer, toast } from 'react-toastify';     
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import Tooltip from '@mui/material/Tooltip';
+
 
 function ThreadImagesGallery({images}){
     if(!images || images.length == 0)
@@ -45,7 +47,6 @@ function ThreadImagesGallery({images}){
         </>
     )
 }
-
 
 function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
     
@@ -79,6 +80,18 @@ function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
         }
     }
 
+    const navigate = useNavigate();
+    const loadingUser = (userid, username) => {
+        if (username === 'Anonymous Melon') {
+            toast.warning('This user chose to be anonymous.', {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+            return;
+        }
+        navigate(`/user/${userid}`);
+    };
+
     return (
         <div className="card p-4 rounded-md" key={reply?.id} id={`${reply?.id}`}>
             <div className="gap-2 thread-info flex justify-start items-center">
@@ -90,7 +103,12 @@ function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
                     <p>{index + 2}</p>
                 </div>
 
-                <p>{reply?.name} - {formatDate(reply?.created_at)}</p>
+                <p>
+                    <span className="cursor-pointer" onClick={() => loadingUser(reply.user, reply.name)}>
+                        {reply.name}
+                    </span>
+                    {' '}- {formatDate(reply?.created_at)}
+                </p>    
 
                 <div className="flex gap-2 p-2">
                     <div className="flex flex-row items-center">
@@ -157,7 +175,7 @@ function Thread(){
     const [thread, setThread] = useState(null)
     const [loading, setLoading] = useState(true);
     const [context, setContext] = useState('');
-    const [username, setUsername] = useState('');
+    const [username, setUsername] = useState('Anonymous Melon');
     const [images, setImages] = useState([]);
     const [imageError, setImageError] = useState('');
     const {user} = useAuth()
@@ -182,7 +200,7 @@ function Thread(){
         e.preventDefault();
         if (!user) return;
         const formData = new FormData();
-        formData.append('name', username);
+        formData.append('name', username); 
         formData.append('user', user.id)
         formData.append('thread',id)
         formData.append('status', 14)
@@ -327,7 +345,31 @@ function Thread(){
             fetchThreadDetails();
         }
     }, [id])
+
     
+    const navigate = useNavigate();
+    const loadingUser = (userid, username) => {
+        console.log('userid:', userid, typeof userid);
+        console.log('user.id:', user?.id, typeof user?.id);
+
+        if (username === 'Anonymous Melon') {
+            toast.warning('This user chose to be anonymous.', {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+            return;
+        }
+
+        if (userid === user?.id) {
+            navigate('/profile');
+            return;
+        }
+
+        
+        navigate(`/user/${userid}`);
+    };
+
+
     if (loading) return(
         <>
         <SideButton/>
@@ -343,6 +385,7 @@ function Thread(){
             </div>
         </>
     );
+
 
     return(
         <>
@@ -383,9 +426,12 @@ function Thread(){
                             {/* thread title */}
                             <div id="thread-title" className="flex gap-2">
                                 <p>{thread?.title}</p>
-                                <button onClick={() => openModal(thread.id)}>
-                                    <StarIcon className="text-yellow-300"/>
-                                </button>
+                                <Tooltip describeChild title="Click here if you want to bookmark this thread.">
+                                    <button onClick={() => openModal(thread.id)}>
+                                        <StarIcon className="text-yellow-300"/>
+                                    </button>
+                                </Tooltip>
+                                
                             </div>
 
                             {/* thread info */}
@@ -395,10 +441,13 @@ function Thread(){
                                     <i className="bi bi-chevron-double-right text-[#9400D3]"></i>
                                     <p>1</p>
                                 </div>
+                                
                                 <p>
-                                    {thread?.user_username} - {formatDate(thread?.created_at)}
-                                </p>
-                                 {/* thread action */}
+                                    <span className="cursor-pointer" onClick={() => loadingUser(thread.user, thread.user_username)}>
+                                        {thread?.user_username}
+                                    </span>
+                                    {' '}- {formatDate(thread?.created_at)}
+                                </p>                             
                                 <div className="flex gap-2 p-2">
                                     <div className="flex flex-row items-center">
                                         <IconButton color="secondary"

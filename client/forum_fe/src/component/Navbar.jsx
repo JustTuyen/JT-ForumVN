@@ -50,7 +50,7 @@ function Navbar(){
                     )}
 
                     <div className="flex">
-                        <form action="" onSubmit={handleSearch}>
+                        <form action="" className='flex-row' onSubmit={handleSearch}>
                             <input type="text" 
                             value={keyword}
                             onChange={(e) => setKeyword(e.target.value)}

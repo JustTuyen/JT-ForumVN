@@ -8,9 +8,9 @@ from django.db import IntegrityError
 from rest_framework.response import Response
 # Create your views here.
 class BookmarkViewSet(viewsets.ModelViewSet):
-    #queryset = Bookmark.objects.select_related('user','thread').all()
-    serializer_class = BookmarkSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # queryset = Bookmark.objects.select_related('user','thread').all()
+    # serializer_class = BookmarkSerializer
+    # permission_classes = [permissions.IsAuthenticated]
     def get_queryset(self):
         qs = (
             Bookmark.objects
@@ -50,6 +50,7 @@ class BookmarkViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    
 
 
 class LikeViewSet(viewsets.ModelViewSet):

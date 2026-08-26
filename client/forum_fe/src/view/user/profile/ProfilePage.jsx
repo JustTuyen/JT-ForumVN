@@ -1094,7 +1094,7 @@ function BookMarks(){
 function Posting(){
     const [categories, setCategories] = useState([]);
     const [title, setTitle] = useState('');
-    const [username, setUsername] = useState('');
+    const [username, setUsername] = useState('Anonymous Melon');
     const [context, setContext] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('default');
     const [images, setImages] = useState([]);
@@ -1294,7 +1294,9 @@ function Posting(){
                                     onChange={(e) => setSelectedCategory(e.target.value)}>
                                         <option value="default" selected>Pick a category</option>
                                         {categories.map((category) => (
-                                            <option key={category.id} value={category.id}>{category.title}</option>
+                                            <option 
+                                            disabled={category.status_name === 'Suspend'}
+                                            key={category.id} value={category.id}>{category.title}</option>
                                         ))} 
                                     </select>
                                 </div>

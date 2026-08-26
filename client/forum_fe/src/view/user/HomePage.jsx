@@ -24,9 +24,9 @@ import { ToastContainer, toast } from 'react-toastify';
 
 function Home(){
 
-    //The double return array is normal cuz of strictmode
+    //The double return array is normal cuz of strict mode
     const [threads, setThread] = useState([])
-    //creat forum
+    //create forum
     const [categories, setCategories] = useState([]);
     const [title, setTitle] = useState('');
     const [username, setUsername] = useState('Anonymous Melon');
@@ -404,7 +404,9 @@ function Home(){
                                                 onChange={(e) => setSelectedCategory(e.target.value)}>
                                                     <option value="default" selected>Pick a category</option>
                                                     {categories.map((category) => (
-                                                        <option key={category.id} value={category.id}>{category.title}</option>
+                                                        <option 
+                                                        disabled={category.status_name === 'Suspend'}
+                                                        key={category.id} value={category.id}>{category.title}</option>
                                                     ))} 
                                                 </select>
                                             </div>

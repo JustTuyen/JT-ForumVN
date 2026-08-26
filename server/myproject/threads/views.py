@@ -225,12 +225,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
         serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
         return Response(serializer.data)
-        threads = (
-            self.get_queryset()
-            .select_related('status')
-            .prefetch_related('images')
-            .annotate(reply_count=Count('replies', distinct=True))
-            ).filter(user=request.user)
+       
 
     #searching through key words
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
@@ -327,9 +322,18 @@ class ThreadViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
         )
             
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def user_threads(self, request, pk=None):
+        target_user = self.get_object()
+        threads = (
+            Thread.objects
+            .filter(user=target_user)
+            .select_related('status')
+            .prefetch_related('images')
+            .annotate(reply_count=Count('replies', distinct=True))
+        )
 
-
-
+    
 
 
 class ReplyViewSet(viewsets.ModelViewSet):

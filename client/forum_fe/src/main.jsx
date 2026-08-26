@@ -34,7 +34,7 @@ const router = createBrowserRouter([
   {path:'/threads/:id', element:<Thread/>},
   {path:'/search', element:<Search/>},
   {path:'/profile', element:<Profile/>},
-  {path:'/user', element:<User/>},
+  {path:'/user/:id', element:<User/>},
   {path:'/history', element:<History/>},
   {path:'/about', element:<About/>},
   // admin
