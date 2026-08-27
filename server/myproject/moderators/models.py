@@ -62,6 +62,7 @@ class Report(models.Model):
         related_name='reports', 
         null=True, 
         blank=True) 
+    
     #target id: thread, reply or user
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()

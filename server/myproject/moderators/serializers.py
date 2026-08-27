@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Bookmark, Like
+from .models import Bookmark, Like, Report
 from threads.models import Thread, Image, Reply
 
 class MiniImageSerializer(serializers.ModelSerializer):
@@ -34,8 +34,6 @@ class MiniThreadSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at','updated_at'] 
 
-
-
 class BookmarkSerializer(serializers.ModelSerializer):
     thread = MiniThreadSerializer(read_only=True)
     thread_id = serializers.PrimaryKeyRelatedField(
@@ -65,7 +63,6 @@ class BookmarkSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("This thread is not available.")
         return value
 
-
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
@@ -92,3 +89,91 @@ class LikeSerializer(serializers.ModelSerializer):
         if not value.status or value.status.status_name == 'Suspend':
             raise serializers.ValidationError("This reply is not available.")
         return value
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = [
+            'id', 'violation_type','reason','point_punishment',
+            'user','content_type','object_id',
+            'status',
+            'updated_at','created_at'
+        ]
+        read_only_fields = ['updated_at','created_at']
+
+class CreateReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = [
+            'violation_type',
+            'reason',
+            'point_punishment',
+            'user',
+            'content_type',
+            'object_id',
+            'status'
+        ]
+
+    def validate_user(self, value):
+        if not value.status or value.status.status_name != 'Active':
+            raise serializers.ValidationError("This user account is not active.")
+        return value
+
+class ReportListingSerializer(serializers.ModelSerializer):
+    status_name = serializers.ReadOnlyField(source='status.status_name')
+    content_type_name = serializers.CharField(source='content_type.model', read_only=True)
+    class Meta:
+        model = Report
+        fields = [
+            'id',
+            'violation_type',
+            'reason',
+            'content_type','content_type_name',
+            'point_punishment',
+            'user',
+            'status','status_name',
+            'updated_at','created_at'
+        ]
+        read_only_fields = ['updated_at','created_at']
+
+    def validate_user(self, value):
+        if not value.status or value.status.status_name != 'Active':
+            raise serializers.ValidationError("This user account is not active.")
+        return value
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = [
+            'id',
+            'user',
+            'violation_type',
+            'reason',
+            'status',
+            'target',
+        ]
+        read_only_fields = ['id']
+
+    def validate_user(self, value):
+        if not value.status or value.status.status_name != 'Active':
+            raise serializers.ValidationError("This user account is not active.")
+        return value
+
+class AdminUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = [
+            'id',
+            'status',
+        ]
+        read_only_fields = ['id']
+
+class ModUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = [
+            'id',
+            'status',
+        ]
+        read_only_fields = ['id']

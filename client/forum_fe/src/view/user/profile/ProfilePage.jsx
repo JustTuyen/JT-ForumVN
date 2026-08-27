@@ -28,10 +28,17 @@ import {modalStyle, formatDate, modalStyle2} from './style/Modals'
 function ProfileOverview(){
 
     const {user, loading} = useAuth()
-    if(!user){
-        toast.error('You must login to use this function!');
+    // if(!user){
+    //     toast.warning("you must login to use this page!",{
+    //         position: 'top-right',
+    //         autoClose: 1500,
+    //     })
         
-    }
+    //     setTimeout(() => {
+    //         navigate('/login');
+    //     }, 3000);
+
+    // }
    
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
@@ -53,6 +60,8 @@ function ProfileOverview(){
     const [checkPassword, setCheckPassword] = useState('')
     //
     useEffect(()=>{
+
+    
         if(user){
             setEmail(user.email || '');
             setUsername(user.username || '');
@@ -149,6 +158,9 @@ function ProfileOverview(){
         }
     } 
     if (loading) return <p>Loading...</p>;
+    if (!user) return null; 
+
+
     return(
         <>
         <div className="py-2 min-h-[60vh]">
@@ -463,8 +475,15 @@ function ThreadOverview(){
     const [threads, setThread] = useState([])
     const {user,loading} = useAuth()
     if(!user){
-        toast.error('You must login to use this function!');
+        toast.warning("you must login to use this page!",{
+            position: 'top-right',
+            autoClose: 3000,
+        })
         
+        setTimeout(() => {
+            navigate('/login');
+        }, 1500);
+
     }
     const [selectValue, setSelectValue] = useState('-created_at');
     const [ordering, setOrdering] = useState('-created_at');
@@ -771,6 +790,17 @@ function BookMarks(){
     const [ordering, setOrdering] = useState('-created_at');
     const [statusSelectValue, setStatusSelectValue] = useState('all');
 
+    if(!user){
+        toast.warning("you must login to use this page!",{
+            position: 'top-right',
+            autoClose: 3000,
+        })
+        
+        setTimeout(() => {
+            navigate('/login');
+        }, 1500);
+
+    }
 
     const fetchBookmark = useCallback(async () => {
         try {
@@ -1167,7 +1197,17 @@ function Posting(){
     } 
 
     
-    if (loading) return <p>Loading...</p>;
+    if (loading) return(
+        <>
+        <SideButton/>
+        <Navbar/>
+        <div className="min-h-screen flex flex-col justify-center items-center">
+            <Box sx={{ display: 'flex' }}>
+                <CircularProgress aria-label="Loading…" />
+            </Box>
+        </div>
+        </>
+    );
 
     return(
         <>
@@ -1356,6 +1396,35 @@ function Posting(){
 }
 
 function Profile(){
+    const {user,loading} = useAuth()
+    const navigate = useNavigate();
+
+    if(!user){
+        toast.warning("you must login to use this page!",{
+            position: 'top-right',
+            autoClose: 3000,
+        })
+        
+        setTimeout(() => {
+            navigate('/login');
+        }, 1500);
+
+    }
+
+    useEffect(()=>{
+        
+        if (!loading && !user) {
+            toast.warning('You must be logged in to use this page!', {
+                position: 'top-right',
+                autoClose: 2000,
+            });
+
+            const timer = setTimeout(() => {
+                navigate('/login');
+            }, 3000);
+        }
+    },[user, navigate, loading])
+
     const [activeTab, setActiveTab] = useState('overview');
     const renderSubView = () => {
         switch(activeTab){
@@ -1372,6 +1441,7 @@ function Profile(){
 
     return(
         <>
+        <ToastContainer/>
         <SideButton/>
         <Navbar/>
         <div className="min-h-screen">

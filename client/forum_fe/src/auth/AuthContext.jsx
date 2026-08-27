@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import api from "./ApiHandle";
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 
 const AuthContext = createContext(null)
 export function AuthProvider({ children }){
@@ -55,6 +57,16 @@ export function AuthProvider({ children }){
         };
     }, []);
 
+    if (loading) return(
+        <>
+        <div className="min-h-screen flex flex-col justify-center items-center">
+            <Box sx={{ display: 'flex' }}>
+                <CircularProgress aria-label="Loading…" />
+            </Box>
+        </div>
+        </>
+    );
+    
     return (
         <AuthContext.Provider value={{ user, login, logout, loading }}>
         {children}

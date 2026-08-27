@@ -378,17 +378,17 @@ const [user, setUser] = useState('')
 
 
 
-    if (loading) {
-        return(
-            <>
-                <div className="flex justify-center p-8">
-                    <Box sx={{ display: 'flex' }}>
-                        <CircularProgress aria-label="Loading…" />
-                    </Box>
-                </div>
-            </>
-        )
-    }
+    if (loading) return(
+        <>
+        <SideButton/>
+        <Navbar/>
+        <div className="min-h-screen flex flex-col justify-center items-center">
+            <Box sx={{ display: 'flex' }}>
+                <CircularProgress aria-label="Loading…" />
+            </Box>
+        </div>
+        </>
+    );
 
     return(
         <>
@@ -492,6 +492,7 @@ const [user, setUser] = useState('')
                                 </select>
                             </div>
                             <div className="pb-10">
+                                {threads.length > 0 ? (
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
                                     {threads.map((thread) => (
                                     <Link to={`/threads/${thread.id}`} key={thread.id} className="block no-underline">
@@ -527,6 +528,12 @@ const [user, setUser] = useState('')
                                     </Link>
                                     ))}
                                 </div>
+                                ):(
+                                    <div className=" p-4
+                                    flex justify-center rounded-md">
+                                        <p className="text-[#9400D3] font-bold">There is no thread with this keyword.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

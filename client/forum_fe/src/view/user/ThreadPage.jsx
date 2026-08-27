@@ -374,15 +374,11 @@ function Thread(){
         <>
         <SideButton/>
         <Navbar/>
-        <div className="min-h-screen">
-            <section className="flex flex-col items-center">
-                <div className="w-[80%]">
-                    <Box sx={{ display: 'flex' }}>
-                        <CircularProgress aria-label="Loading…" />
-                    </Box>
-                </div>
-                </section>
-            </div>
+        <div className="min-h-screen flex flex-col justify-center items-center">
+            <Box sx={{ display: 'flex' }}>
+                <CircularProgress aria-label="Loading…" />
+            </Box>
+        </div>
         </>
     );
 

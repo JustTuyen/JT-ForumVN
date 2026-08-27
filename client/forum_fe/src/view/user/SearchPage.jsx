@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import Navbar from "../../component/Navbar";
 import Footer from "../../component/Footer";
 import '../css/Search.css'
