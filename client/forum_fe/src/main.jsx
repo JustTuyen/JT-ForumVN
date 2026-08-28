@@ -21,6 +21,7 @@ import ThreadManager from './view/admin/ThreadManager.jsx';
 import User from './view/user/UserPage.jsx';
 import History from './view/user/profile/HistoryPage.jsx';
 import About from './view/user/AboutPage.jsx'
+import Inquiry from './view/user/InquiryPage.jsx';
 //
 import { AuthProvider } from './auth/AuthContext.jsx';
 //
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
   {path:'/user/:id', element:<User/>},
   {path:'/history', element:<History/>},
   {path:'/about', element:<About/>},
+  {path:'/inquiry', element:<Inquiry/>},
   // admin
   {path:'/dashboard', element:<DashBoard/>},
   {path:'/dashboard/thread', element:<ThreadManager/>},

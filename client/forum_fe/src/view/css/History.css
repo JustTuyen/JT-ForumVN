@@ -1,0 +1,49 @@
+/* .card{
+    background-color: transparent;
+    border: none;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    padding: 0;
+}
+ */
+
+.card-data{
+    padding: 10px 10px;
+    background-color: #9400D3;
+    color: white;
+    border-radius: 15px 15px 0px 0px;
+    font-size: 16px;
+
+}
+
+.card-general{
+    background-color: white;
+    border-radius: 0px;
+    font-size: 16px;
+    border-radius: 0px 0px 15px 15px; 
+}
+
+/* .card-action{
+    background-color: white;
+    border-radius: 0px 0px 15px 15px; 
+    font-size: 16px;
+} */
+
+@media (max-width: 1024px) {
+
+    .form-title{
+        font-size: 24px;
+    }
+
+   
+}
+
+@media (max-width: 810px) {
+
+    .form-title{
+        font-size: 18px;
+    }
+
+    .sorting{
+        font-size: 14px;
+    }
+}

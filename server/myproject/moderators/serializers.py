@@ -146,19 +146,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = [
-            'id',
-            'user',
             'violation_type',
             'reason',
             'status',
-            'target',
         ]
         read_only_fields = ['id']
-
-    def validate_user(self, value):
-        if not value.status or value.status.status_name != 'Active':
-            raise serializers.ValidationError("This user account is not active.")
-        return value
 
 class AdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:

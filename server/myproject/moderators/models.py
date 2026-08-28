@@ -50,7 +50,7 @@ class Bookmark(models.Model):
 #8 Report
 class Report(models.Model):
     violation_type = models.CharField(max_length=500, blank=False)
-    reason = models.TextField(max_length=2000,blank=True)
+    reason = models.TextField(max_length=2000,blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     point_punishment = models.IntegerField(default=0)

@@ -80,6 +80,48 @@ function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
         }
     }
 
+    const [selectReplyId, setSelectReplyId] = useState(null);
+    const [reason, setReason] = useState('')
+    const [violationType, setViolationType] = useState('')
+    const [open, setOpen] = React.useState(false);
+    const openModal = (threadId) => {
+        setSelectReplyId(threadId);
+        setOpen(true);
+    };
+    const closeModal = () => {
+        setOpen(false);
+        setSelectReplyId(null);
+    };
+
+    const handleConfirmReport = async () => {
+        await ReportThread(selectReplyId);
+        closeModal();
+    };
+
+    const ReportThread = async () => {
+        try {
+            await api.post(`/api/reports/`,{
+                violation_type: violationType,
+                reason: reason,
+                point_punishment: 10,
+                user: user.id,
+                content_type: 11,
+                object_id: selectReplyId,
+                status: 15
+            });
+
+            toast.success('Report create successfully!', {
+                position: 'top-right',
+                autoClose: 1000,
+            });
+        } catch (error) {
+            toast.error(`${error}!`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    };
+
     const navigate = useNavigate();
     const loadingUser = (userid, username) => {
         if (username === 'Anonymous Melon') {
@@ -93,6 +135,7 @@ function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
     };
 
     return (
+        <>
         <div className="card p-4 rounded-md" key={reply?.id} id={`${reply?.id}`}>
             <div className="gap-2 thread-info flex justify-start items-center">
                 <div 
@@ -123,7 +166,7 @@ function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
                         <p>{likeCount} {likeCount === 1 ? 'like' : 'likes'}</p>
                     </div>
 
-                    <Button variant="outlined" id="report-btn">
+                    <Button variant="outlined" id="report-btn" onClick={() => openModal(reply.id)}>
                         Report
                     </Button>
                 </div>
@@ -147,6 +190,73 @@ function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
                 </div>
             )}
         </div>
+        <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={open}
+            onClose={closeModal}
+            closeAfterTransition
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+            backdrop: {
+                timeout: 500,
+            },
+            }}
+        >
+            <Fade in={open}>
+                <Box  sx={modalStyle2}>
+                    <div className="flex justify-center
+                    text-[24px] lg:text-[32px] text-[#9400D3] font-bold">
+                        <p>Report thread</p>
+                    </div>
+                    <div className="p-2">
+                        <div className="px-4 py-2 justify-center flex flex-col gap-2">
+                            <p>Are you sure you want to report this thread?</p>
+                            <select name="" id="" value={violationType}
+                            className="w-full post-thread bg-white rounded-md px-3 py-2 
+                            focus:outline-none focus:ring-2
+                            border text-[#9400D3] border-[#9400D3]"
+                            onChange={(e) => setViolationType(e.target.value)}>
+                                <option value="Spam" selected>Type of violation</option>
+                                <option value="Spam">Spam</option>
+                                <option value="Hate, Abuse, or Harassment">Hate, Abuse, or Harassment</option>
+                                <option value="Impersonation" >Impersonation</option>
+                                <option value="Child Safety">Child Safety</option>
+                                <option value="Violent Speech" >Violent Speech</option>
+                                <option value="Graphic or Violent Media">Graphic or Violent Media</option>
+                                <option value="Illegal  and Regulated Behaviors" >Illegal  and Regulated Behaviors</option>
+                                <option value="Hate, Abuse, or Harassment">Hate, Abuse, or Harassment</option>
+                                <option value="Adult Sexual Content" >Adult Sexual Content</option>
+                                <option value="Private or Non-Consensual Content" >Private or Non-Consensual Content</option>
+                                <option value="Suicide or Self-Harm" >Suicide or Self-Harm</option>
+                                <option value="Terrorism or Violent Extremism" >Terrorism or Violent Extremism</option>
+                                <option value="Civic Integrity" >Civic Integrity</option>
+                            </select>
+                            <textarea name="" id=""
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            className="w-full post-thread bg-white rounded-md px-3 py-2 
+                            focus:outline-none focus:ring-2 
+                            border text-[#9400D3] border-[#9400D3]"
+                            placeholder="Please a reason if you want">
+                            </textarea>
+                        </div>
+
+                        <div className="flex justify-center gap-4">
+                            <Button variant="outlined" color="error"  
+                            onClick={closeModal}>
+                                never mind
+                            </Button>
+                            <Button id="update-btn"
+                            onClick={handleConfirmReport}>
+                                Yes
+                            </Button>
+                        </div>
+                    </div>
+                </Box>
+            </Fade>
+        </Modal>
+        </>
     );
 }
 
@@ -281,8 +391,6 @@ function Thread(){
         }
 
         const wasLiked = isLiked;
-        
-        // Optimistic UI Update
         setIsLiked(!wasLiked);
         setLikeCount((prev) => (wasLiked ? prev - 1 : prev + 1));
 
@@ -339,6 +447,47 @@ function Thread(){
         }
     };
 
+    const [reason, setReason] = useState('')
+    const [violationType, setViolationType] = useState('')
+    const [open1, setOpen1] = React.useState(false);
+    const openModal1 = (threadId) => {
+        setSelectedThreadId(threadId);
+        setOpen1(true);
+    };
+    const closeModal1 = () => {
+        setOpen1(false);
+        setSelectedThreadId(null);
+    };
+
+    const handleConfirmReport = async () => {
+        await ReportThread(selectedThreadId);
+        closeModal();
+    };
+
+    const ReportThread = async () => {
+        try {
+            await api.post(`/api/reports/`,{
+                violation_type: violationType,
+                reason: reason,
+                point_punishment: 10,
+                user: user.id,
+                content_type: 12,
+                object_id: id,
+                status: 15
+            });
+
+            toast.success('Thread bookmark successfully!', {
+                position: 'top-right',
+                autoClose: 1000,
+            });
+        } catch (error) {
+            toast.error(`${error}!`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+    };
+
 
     useEffect(()=>{
         if (id) {
@@ -364,7 +513,6 @@ function Thread(){
             navigate('/profile');
             return;
         }
-
         
         navigate(`/user/${userid}`);
     };
@@ -453,7 +601,8 @@ function Thread(){
                                         </IconButton>
                                         <p>{likeCount} likes</p>
                                     </div>
-                                    <Button variant="outlined" id="report-btn">
+                                    <Button variant="outlined" id="report-btn"
+                                    onClick={() => openModal1(thread.id)}>
                                         Report
                                     </Button>
                                 </div>
@@ -635,6 +784,72 @@ function Thread(){
                             </Button>
                             <Button id="update-btn"
                             onClick={handleConfirmBookmark}>
+                                Yes
+                            </Button>
+                        </div>
+                    </div>
+                </Box>
+            </Fade>
+        </Modal>
+        <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={open1}
+            onClose={closeModal1}
+            closeAfterTransition
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+            backdrop: {
+                timeout: 500,
+            },
+            }}
+        >
+            <Fade in={open1}>
+                <Box  sx={modalStyle2}>
+                    <div className="flex justify-center
+                    text-[24px] lg:text-[32px] text-[#9400D3] font-bold">
+                        <p>Report thread</p>
+                    </div>
+                    <div className="p-2">
+                        <div className="px-4 py-2 justify-center flex flex-col gap-2">
+                            <p>Are you sure you want to report this thread?</p>
+                            <select name="" id="" value={violationType}
+                            className="w-full post-thread bg-white rounded-md px-3 py-2 
+                            focus:outline-none focus:ring-2
+                            border text-[#9400D3] border-[#9400D3]"
+                            onChange={(e) => setViolationType(e.target.value)}>
+                                <option value="Spam" selected>Type of violation</option>
+                                <option value="Spam">Spam</option>
+                                <option value="Hate, Abuse, or Harassment">Hate, Abuse, or Harassment</option>
+                                <option value="Impersonation" >Impersonation</option>
+                                <option value="Child Safety">Child Safety</option>
+                                <option value="Violent Speech" >Violent Speech</option>
+                                <option value="Graphic or Violent Media">Graphic or Violent Media</option>
+                                <option value="Illegal  and Regulated Behaviors" >Illegal  and Regulated Behaviors</option>
+                                <option value="Hate, Abuse, or Harassment">Hate, Abuse, or Harassment</option>
+                                <option value="Adult Sexual Content" >Adult Sexual Content</option>
+                                <option value="Private or Non-Consensual Content" >Private or Non-Consensual Content</option>
+                                <option value="Suicide or Self-Harm" >Suicide or Self-Harm</option>
+                                <option value="Terrorism or Violent Extremism" >Terrorism or Violent Extremism</option>
+                                <option value="Civic Integrity" >Civic Integrity</option>
+                            </select>
+                            <textarea name="" id=""
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            className="w-full post-thread bg-white rounded-md px-3 py-2 
+                            focus:outline-none focus:ring-2 
+                            border text-[#9400D3] border-[#9400D3]"
+                            placeholder="Please a reason if you want">
+                            </textarea>
+                        </div>
+
+                        <div className="flex justify-center gap-4">
+                            <Button variant="outlined" color="error"  
+                            onClick={closeModal}>
+                                never mind
+                            </Button>
+                            <Button id="update-btn"
+                            onClick={handleConfirmReport}>
                                 Yes
                             </Button>
                         </div>

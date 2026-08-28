@@ -115,7 +115,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            return [permissions.IsAuthenticated]
+            return [permissions.AllowAny()]
         if self.action in ['update', 'partial_update']:
             return [permissions.IsAuthenticated(), IsUserOrBoss()]
         if self.action == 'destroy':
@@ -134,12 +134,13 @@ class ReportViewSet(viewsets.ModelViewSet):
         status_id = request.query_params.get('status')
         if status_id:
             reports = reports.filter(status_id=status_id)
-    
-        ordering = request.query_params.get('ordering', '-created_at')
-        if ordering.lstrip('-') in ['title','created_at']:
-            reports = reports.order_by(ordering)
-        page = self.paginate_queryset(reports)
 
+        allowed_ordering = [ 'created_at', 'updated_at', 'violation_type', 'content_type']
+        ordering = request.query_params.get('ordering', '-created_at')
+        if ordering.lstrip('-') in allowed_ordering:
+            reports = reports.order_by(ordering)
+
+        page = self.paginate_queryset(reports)
         if page is not None:
             serializer = ReportListingSerializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)

@@ -60,8 +60,6 @@ function ProfileOverview(){
     const [checkPassword, setCheckPassword] = useState('')
     //
     useEffect(()=>{
-
-    
         if(user){
             setEmail(user.email || '');
             setUsername(user.username || '');
