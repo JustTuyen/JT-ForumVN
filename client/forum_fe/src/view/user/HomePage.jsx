@@ -49,7 +49,7 @@ function Home(){
         }
         async function fetchThreads(){
             try{
-                const {data} =  await api.get('/api/threads/listings/')
+                const {data} =  await api.get('/api/threads/top_only/')
                 setThread(data);
                 console.log('data', data);
             } catch(error){
@@ -85,7 +85,7 @@ function Home(){
         formData.append('user', user.id)
         formData.append('context', context);
         formData.append('category', selectedCategory);
-        formData.append('status', 1)
+        formData.append('status', 4)
         images.forEach((file) => {
             formData.append('images', file);
         });

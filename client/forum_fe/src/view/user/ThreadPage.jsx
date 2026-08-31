@@ -171,12 +171,21 @@ function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
                     </Button>
                 </div>
             </div>
+            {reply.status_name !== 'Suspend'?(                
+                <div className="thread-context">
+                    <p className="mt-2 mb-8 whitespace-pre-line">
+                        {reply?.context}
+                    </p>
+                </div>
+                ):(
 
-            <div className="thread-context">
-                <p className="mt-2 mb-8 whitespace-pre-line">
-                    {reply?.context}
-                </p>
-            </div>
+                <div className="thread-context">
+                    <p className="mt-2 mb-8 opacity-65 
+                    whitespace-pre-line">
+                        This response has been deleted.
+                    </p>
+                </div>
+            )}
 
             <ThreadImagesGallery images={reply?.images} />
 
@@ -386,7 +395,10 @@ function Thread(){
     }
     const likingThread = async () => {
         if (!user) {
-            toast.warning('Please log in to like this thread.');
+            toast.warning('Please log in to like this thread.',{
+                position: 'top-right',
+                autoClose: 1500,
+            });
             return;
         }
 
@@ -476,7 +488,7 @@ function Thread(){
                 status: 15
             });
 
-            toast.success('Thread bookmark successfully!', {
+            toast.success('Report create successfully!', {
                 position: 'top-right',
                 autoClose: 1000,
             });
@@ -533,6 +545,7 @@ function Thread(){
 
     return(
         <>
+        <ToastContainer/>
         <SideButton targetId="reply-box"/>
         <Navbar/>
         <div className="min-h-screen">

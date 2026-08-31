@@ -15,6 +15,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import api from "../../auth/ApiHandle";
 import SendIcon from '@mui/icons-material/Send';
+import Pagination from '@mui/material/Pagination';
+import Stack from '@mui/material/Stack';
+
 
 function ThreadOverView(){
     const { id } = useParams();
@@ -318,6 +321,9 @@ const [user, setUser] = useState('')
 
     const [ordering, setOrdering] = useState('-created_at');
     const [statusSelectValue, setStatusSelectValue] = useState('all');
+    const [page, setPage] = useState(0)
+    const [rowsPerPage, setRowsPerPage] = useState(20);
+    const [count, setCount] = useState(0);
     const [threads, setThread] = useState([]);
     const [selectValue, setSelectValue] = useState('-created_at');
     
@@ -335,8 +341,12 @@ const [user, setUser] = useState('')
                 params.append('status', statusParam)
             }
             params.append('ordering', sortParam)
+            params.append('page', page + 1);
+            params.append('page_size', rowsPerPage);
+
             const { data } = await api.get(`/api/users/${id}/threads/?${params.toString()}`);
             setThread(data.results ?? data);
+            setCount(data.count ?? 0);
         
         } catch (err) {
             console.error('Error fetching threads:', err);
@@ -348,7 +358,7 @@ const [user, setUser] = useState('')
         } finally{
             setLoading(false)
         }
-    },[id,ordering,statusSelectValue])
+    },[id,ordering,statusSelectValue, page, rowsPerPage])
 
     useEffect(()=>{
         
@@ -534,6 +544,17 @@ const [user, setUser] = useState('')
                                         <p className="text-[#9400D3] font-bold">There is no thread with this keyword.</p>
                                     </div>
                                 )}
+                            </div>
+                            <div className="flex justify-center p-4">
+                                <Stack spacing={2}>
+                                    <Pagination
+                                        count={Math.max(1, Math.ceil(count / rowsPerPage))}
+                                        page={page + 1}                         // convert 0-indexed → 1-indexed
+                                        onChange={(event, newPage) => setPage(newPage - 1)}  // convert back
+                                        color="secondary"
+                                        shape="rounded"
+                                    />
+                                </Stack>
                             </div>
                         </div>
                     </div>

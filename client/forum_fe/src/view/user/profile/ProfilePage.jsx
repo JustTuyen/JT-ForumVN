@@ -28,17 +28,11 @@ import {modalStyle, formatDate, modalStyle2} from './style/Modals'
 function ProfileOverview(){
 
     const {user, loading} = useAuth()
-    // if(!user){
-    //     toast.warning("you must login to use this page!",{
-    //         position: 'top-right',
-    //         autoClose: 1500,
-    //     })
-        
-    //     setTimeout(() => {
-    //         navigate('/login');
-    //     }, 3000);
-
-    // }
+    const navigate = useNavigate()
+    if(!user){
+          
+        navigate('/login');
+    }
    
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
@@ -1167,7 +1161,7 @@ function Posting(){
         formData.append('user', user.id)
         formData.append('context', context);
         formData.append('category', selectedCategory);
-        formData.append('status', 1)
+        formData.append('status', 4)
         images.forEach((file) => {
             formData.append('images', file);
         });
@@ -1398,15 +1392,8 @@ function Profile(){
     const navigate = useNavigate();
 
     if(!user){
-        toast.warning("you must login to use this page!",{
-            position: 'top-right',
-            autoClose: 3000,
-        })
-        
-        setTimeout(() => {
-            navigate('/login');
-        }, 1500);
-
+          
+        navigate('/login');
     }
 
     useEffect(()=>{

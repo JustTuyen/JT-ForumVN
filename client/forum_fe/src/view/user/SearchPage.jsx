@@ -18,12 +18,17 @@ import AvTimerIcon from '@mui/icons-material/AvTimer';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useAuth } from "../../auth/AuthContext";
+import Pagination from '@mui/material/Pagination';
+import Stack from '@mui/material/Stack';
 
 function Search(){
     
     // sorting
     const [keyword] = useSearchParams()
     const query = keyword.get('q') || ''
+     const [page, setPage] = useState(0)
+    const [rowsPerPage, setRowsPerPage] = useState(20);
+    const [count, setCount] = useState(0);
     const [threads, setThread] = useState([])
     const [loading, setLoading] = useState(true)
     const [categories, setCategories] = useState([]);
@@ -57,8 +62,12 @@ function Search(){
                 params.append('ordering', sortParam);
             }
 
+            params.append('page', page + 1);
+            params.append('page_size', rowsPerPage);
+
             const { data } = await api.get(`/api/threads/searcher/?${params.toString()}`);
             setThread(data.results ?? data);
+            setCount(data.count ?? 0);
 
         } catch (error) {
             toast.error(`There is an error fetching search result!: ${error}`,{
@@ -68,7 +77,7 @@ function Search(){
         } finally{
             setLoading(false);
         }
-    },[ordering, isShuffled, selectedCategoryFilter, query]);
+    },[ordering, isShuffled, selectedCategoryFilter, query,page, rowsPerPage]);
  
     
        
@@ -136,7 +145,7 @@ function Search(){
         formData.append('user', user.id)
         formData.append('context', context);
         formData.append('category', selectedCategory);
-        formData.append('status', 1)
+        formData.append('status', 4)
         images.forEach((file) => {
             formData.append('images', file);
         });
@@ -282,41 +291,56 @@ function Search(){
                     {/* card section */}
                     <div className="pb-20">
                         {threads.length > 0 ? (
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
-                            {threads.map((thread) => (
-                            <Link to={`/threads/${thread.id}`} key={thread.id} className="block no-underline">
-                                <Card key={thread.id}>
-                                    <CardActionArea>
-                                        <div className="grid grid-cols-3">
-                                            <div class="p-2">
-                                                <img 
-                                                src={thread.images?.find((img)=>
-                                                img.is_thumbnail)?.file || forumThumbnail} 
-                                                alt="[object Object]"
-                                                className="shadow-sm rounded-md thumbnail-img"/>
-                                            </div>
-                                            <div class="col-span-2 p-2">
-                                                <div id="card-title">
-                                                    <p>{thread.title}</p>
+                            <div className="">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
+                                    {threads.map((thread) => (
+                                    <Link to={`/threads/${thread.id}`} key={thread.id} className="block no-underline">
+                                        <Card key={thread.id}>
+                                            <CardActionArea>
+                                                <div className="grid grid-cols-3">
+                                                    <div class="p-2">
+                                                        <img 
+                                                        src={thread.images?.find((img)=>
+                                                        img.is_thumbnail)?.file || forumThumbnail} 
+                                                        alt="[object Object]"
+                                                        className="shadow-sm rounded-md thumbnail-img"/>
+                                                    </div>
+                                                    <div class="col-span-2 p-2">
+                                                        <div id="card-title">
+                                                            <p>{thread.title}</p>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2 p-1 items-end justify-end">
-                                            {/* archive to display status */}
-                                            <div className="card-info info-archive">
-                                                <p>{thread.status_name}</p>
-                                            </div>
-                                            {/* display the amount of reply */}
-                                            <div className="card-info info-reply gap-1">
-                                                <i class="bi bi-chat-dots"></i>
-                                                {thread.reply_count}
-                                            </div>
-                                        </div>
-                                    </CardActionArea>
-                                </Card>
-                            </Link>
-                            ))}
-                        </div>
+                                                <div className="flex gap-2 p-1 items-end justify-end">
+                                                    {/* archive to display status */}
+                                                    <div className="card-info info-archive">
+                                                        <p>{thread.status_name}</p>
+                                                    </div>
+                                                    {/* display the amount of reply */}
+                                                    <div className="card-info info-reply gap-1">
+                                                        <i class="bi bi-chat-dots"></i>
+                                                        {thread.reply_count}
+                                                    </div>
+                                                </div>
+                                            </CardActionArea>
+                                        </Card>
+                                    </Link>
+                                    ))}
+                                    
+                                </div>
+                                <div className="flex justify-center p-4">
+                                    <Stack spacing={2}>
+                                        <Pagination
+                                            count={Math.max(1, Math.ceil(count / rowsPerPage))}
+                                            page={page + 1}                         // convert 0-indexed → 1-indexed
+                                            onChange={(event, newPage) => setPage(newPage - 1)}  // convert back
+                                            color="secondary"
+                                            shape="rounded"
+                                        />
+                                    </Stack>
+                                </div>    
+                            </div>
+
                         ):(
                             <div className=" p-4
                             flex justify-center rounded-md">

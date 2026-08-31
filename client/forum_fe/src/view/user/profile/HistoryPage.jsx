@@ -52,7 +52,7 @@ function History(){
 
             params.append('ordering', sortParam)
             const {data} = await api.get(`/api/reports/my_report/?${params.toString()}`)
-            setReport(data.result ?? data)
+            setReport(data.results ?? data)
         } catch (err){
             console.error('Error fetching threads:', err);
             const msg = err.response?.data?.detail || 'Failed to fetch threads.';
@@ -305,10 +305,19 @@ function History(){
 
                                             <div className="flex flex-col card-general p-2 gap-2">
                                                 <p><span className="font-bold">Type of violation: </span>{report.violation_type}</p>
-                                                <p>
-                                                    <span className="font-bold">Your reason: </span>
-                                                    {report.reason ?? 'None'}
-                                                </p>
+
+                                                {report.reason === "" ? (
+                                                    <p>
+                                                        <span className="font-bold">Your reason: </span>
+                                                        None
+                                                    </p>
+                                                ):(
+                                                    <p>
+                                                        <span className="font-bold">Your reason: </span>
+                                                        {report.reason} 
+                                                    </p>
+                                                        
+                                                )}
                                                 <div>
                                                     <span className="font-bold">Status: </span> 
                                                     <Chip 

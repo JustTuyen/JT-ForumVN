@@ -135,12 +135,14 @@ class CreateThreadSerializer(serializers.ModelSerializer):
 
 class MiniReplySerializer(serializers.ModelSerializer):
     images = MiniImageSerializer(many=True, read_only=True)
+    status_name = serializers.ReadOnlyField(source='status.status_name')
     class Meta:
         model = Reply
         fields = [
             'id', 'name', 'context', 'images','user',
             'created_at','updated_at','like_count',
-            'parent_reply', 'created_at'
+            'parent_reply', 'created_at',
+            'status_name'
         ]
         read_only_fields = ['created_at']
 

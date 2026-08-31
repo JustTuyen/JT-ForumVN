@@ -16,11 +16,16 @@ import { useCallback, useState } from "react";
 import { useEffect } from "react";
 import api from "../../auth/ApiHandle";
 import { useAuth } from "../../auth/AuthContext";
+import Pagination from '@mui/material/Pagination';
+import Stack from '@mui/material/Stack';
 
 //add toatify
 import {ToastContainer, toast } from 'react-toastify'
 
 function Menu(){
+    const [page, setPage] = useState(0)
+    const [rowsPerPage, setRowsPerPage] = useState(20);
+    const [count, setCount] = useState(0);
     const [threads, setThread] = useState([])
     const [categories, setCategories] = useState([]);
     const [ordering, setOrdering] = useState('-created_at');
@@ -51,14 +56,23 @@ function Menu(){
                 params.append('ordering', sortParam);
             }
 
+            params.append('page', page + 1);
+            params.append('page_size', rowsPerPage);
+
             const { data } = await api.get(`/api/threads/listings/?${params.toString()}`);
             
-            // Handle both paginated (data.results) and plain array responses
             setThread(data.results ?? data);
+            setCount(data.count ?? 0);
         } catch (error) {
             console.error('Error fetching threads:', error);
         }
-    }, [ordering, isShuffled, selectedCategoryFilter]);
+    }, [ordering, isShuffled, selectedCategoryFilter, page, rowsPerPage]);
+
+    useEffect(() => {
+        fetchThreads();
+        }, [fetchThreads]
+    );
+
 
     useEffect(()=>{
         async function fetchCategories() {
@@ -70,9 +84,10 @@ function Menu(){
             }
         }
         
-        fetchThreads();
+
         fetchCategories();
     }, [])
+
 
     const handleCategoryFilterChange = (categoryId) => {
         setSelectedCategoryFilter(categoryId);
@@ -115,7 +130,7 @@ function Menu(){
         formData.append('user', user.id)
         formData.append('context', context);
         formData.append('category', selectedCategory);
-        formData.append('status', 1)
+        formData.append('status', 4)
         images.forEach((file) => {
             formData.append('images', file);
         });
@@ -216,7 +231,7 @@ function Menu(){
                             >
                             New Arrivals
                             </Button>
-                            <Button 
+                            {/* <Button 
                             
                             variant="contained"
                             startIcon={<ShuffleIcon />}
@@ -225,7 +240,7 @@ function Menu(){
                             onClick={handleShuffle}
                             >
                             Shuffle
-                            </Button>
+                            </Button> */}
                             <div className="" id="nav-select">
                                 <select onChange={(e) => handleCategoryFilterChange(e.target.value)}>
                                     <option value="default">Pick a category</option>
@@ -275,6 +290,17 @@ function Menu(){
                                 </Card>
                             </Link>
                             ))}
+                        </div>
+                        <div className="flex justify-center p-4">
+                            <Stack spacing={2}>
+                                <Pagination
+                                    count={Math.max(1, Math.ceil(count / rowsPerPage))}
+                                    page={page + 1}                         // convert 0-indexed → 1-indexed
+                                    onChange={(event, newPage) => setPage(newPage - 1)}  // convert back
+                                    color="secondary"
+                                    shape="rounded"
+                                />
+                            </Stack>
                         </div>
                     </div>
 

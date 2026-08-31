@@ -13,6 +13,7 @@ from django.db.models import Count, Prefetch
 from django.db import IntegrityError
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from cores.models import Activity_Log, log_activity
 # Create your views here.
 class BookmarkViewSet(viewsets.ModelViewSet):
     # queryset = Bookmark.objects.select_related('user','thread').all()
@@ -123,6 +124,22 @@ class ReportViewSet(viewsets.ModelViewSet):
         if self.action in ['retrieve','listing','my_report']:
             return [permissions.IsAuthenticated()]
         return [IsAdmin()]
+
+    def perform_create(self, serializer):
+        instance = serializer.save(user=self.request.user)
+        log_activity(
+            self.request,
+            Activity_Log.ActionType.CREATE_REPORT,
+            target=instance,
+        )
+
+    def perform_update(self, serializer):
+        instance = serializer.save(user=self.request.user)
+        log_activity(
+            self.request,
+            Activity_Log.ActionType.UPDATE_REPORT,
+            target=instance,
+        )
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def listing(self, request):
