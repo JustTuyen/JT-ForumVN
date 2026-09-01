@@ -23,11 +23,11 @@ function Login(){
         e.preventDefault();
         try {
             const profile = await login(username, password);
-            if (profile.role === 'moderator') {
+            if (profile.role === 'Moderator') {
                 navigate('/dashboard');
             } 
             
-            if (profile.role === 'admin') {
+            if (profile.role === 'Admin') {
                 navigate('/dashboard');
             }
             else {

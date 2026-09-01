@@ -171,7 +171,7 @@ function ReplyCard({reply, index, user, onSelectReply, scrollToReply}){
                     </Button>
                 </div>
             </div>
-            {reply.status_name !== 'Suspend'?(                
+            {reply.status_name !== 'Suspended'?(                
                 <div className="thread-context">
                     <p className="mt-2 mb-8 whitespace-pre-line">
                         {reply?.context}

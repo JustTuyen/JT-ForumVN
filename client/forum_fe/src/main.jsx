@@ -18,6 +18,7 @@ import Search from './view/user/SearchPage.jsx';
 import Profile from './view/user/profile/ProfilePage.jsx'
 import DashBoard from './view/admin/DashBoardPage.jsx';
 import ThreadManager from './view/admin/ThreadManager.jsx';
+import CategoryManager from './view/admin/CategoryManager.jsx';
 import User from './view/user/UserPage.jsx';
 import History from './view/user/profile/HistoryPage.jsx';
 import About from './view/user/AboutPage.jsx'
@@ -41,7 +42,8 @@ const router = createBrowserRouter([
   {path:'/inquiry', element:<Inquiry/>},
   // admin
   {path:'/dashboard', element:<DashBoard/>},
-  {path:'/dashboard/thread', element:<ThreadManager/>},
+  {path:'/threads', element:<ThreadManager/>},
+  {path:'/categories', element:<CategoryManager/>},
 ])
 
 createRoot(document.getElementById('root')).render(

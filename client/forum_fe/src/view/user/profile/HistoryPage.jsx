@@ -96,7 +96,7 @@ function History(){
 
    
     const getStatusColor = (status) => {
-    const statusName = typeof status === 'object' ? status?.name : status;
+        const statusName = typeof status === 'object' ? status?.name : status;
 
         switch (statusName?.toLowerCase()) {
             case 'approved':
