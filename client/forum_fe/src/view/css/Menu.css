@@ -28,6 +28,15 @@
     font-weight: light;
     text-transform: none;
 }
+
+#nav-select select{
+    background-color: white;
+    padding: 5px 10px;
+    color: #9400D3;
+    border-radius: 13px;
+    font-weight: light;
+    text-transform: none;
+}
 #nav-btn:active{
     background-color: #9400D3;
     color: white;
