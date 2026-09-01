@@ -1,120 +1,242 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions
-from .models import Plan
+from rest_framework import viewsets, permissions, status
+from .models import Plan, User, Subscription
 from .serializers import PLanSerializers
+from .serializers import SubscriptionSerializers
 from .serializers import (
-    UserSerializers, UserAdminSerializers, UserModeratorSerializers, PublicUserSerializers,
-    UpdateUserSerializers, UserRegisterSerializers
+    UserSerializers,
+    RegisterSerializer, EmailTokenObtainPairSerializer,
+    UserDataAdminSerializer,UserUpdateAdminSerializer,
+    UserDataModeratorSerializer, UserUpdateModeratorSerializer,
+    UserProfileSerializer, UserPublicDataSerializer, 
+    UserUpdateImageSerializer, UserUpdatePasswordSerializer, UserUpdateProfileSerializer
 )
+from threads.serializers import ListingThreadSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .models import Plan
+from rest_framework.parsers import MultiPartParser, FormParser
+from threads.models import Image, Thread
+from django.db.models import Q, Count, Prefetch,F
 
 # Create your views here.
 class PlanViewSet(viewsets.ModelViewSet):
     queryset = Plan.objects.select_related('status').all()
     serializer_class = PLanSerializers
     permission_classes = [permissions.AllowAny]
+class SubscriptionViewSet(viewsets.ModelViewSet):
+    queryset = Subscription.objects.select_related('user','plan','status').all()
+    serializer_class = SubscriptionSerializers
+    permission_classes = [permissions.AllowAny]
 
 
-User = get_user_model()
-
-#permission class for admin
-#Returns True only if the user is authenticated and is either a Django staff member
+#checking user role - permission
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         u = request.user
         return u.is_authenticated and (u.is_staff or u.role == User.Role.ADMIN)
 
-    
-
-#permission class for moderator/admin
-
 class IsModeratorOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         u = request.user
-        return u.is_authenticated and (u.is_staff or u.role in [User.Role.ADMIN, User.Role.MODERATOR])
+        return u.is_authenticated and (
+            u.is_staff or u.role in [User.Role.ADMIN, User.Role.MODERATOR]
+        )
 
-#permission class for user / moderator / admin
-class IsSelfOrModeratorOrAdmin(permissions.BasePermission):
+class IsUserOrBoss(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         u = request.user
-        return obj == u or u.is_staff or u.role in [User.Role.ADMIN, User.Role.MODERATOR]
+        if not u.is_authenticated:
+            return False
+        return (
+            obj == u
+            or u.is_staff
+            or u.role in [User.Role.ADMIN, User.Role.MODERATOR]
+        )
+
+#login
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailTokenObtainPairSerializer
 
 
-
+#user view set
+User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):
-
-    #executes an SQL JOIN to pre-fetch related ForeignKey objects (status and profile_image) in a single query,
     queryset = User.objects.select_related('status','profile_image').all()
+    # serializer_class = UserSerializers
+    # permission_classes = [permissions.AllowAny]
 
-
-    #Explanation: Determines which fields can be updated based on who is performing the edit:
     def get_serializer_class(self):
-        # for all user with all role
+
         if self.action == 'create':
-            return UserRegisterSerializers
+            return RegisterSerializer
 
-       # update user info
-        if self.action in ['update','partial_update']:
-            #get the sender id
-            requester = self.request.user
+        if self.action in ['update', 'partial_update']:
             
-            #get the target id
-            target = self.get_object()
+            sender = getattr(self.request, 'user', None)
+            if not sender or not sender.is_authenticated:
+                return UserUpdateProfileSerializer
 
-            #if someone editing not their own profile, check if the user is either admin or mod
-            if target != requester:
-                return UserAdminSerializers if requester.role == User.Role.ADMIN or requester.is_staff else UserModeratorSerializers
+            try:
+                target = self.get_object()
+            except Exception:
+                return UserUpdateProfileSerializer
+            
+            #check if the the user is trying to update their own profile
+            if target == sender:
+                return UserUpdateProfileSerializer
+            
+            #Admin / Staff updating another user
+            if getattr(sender, 'role', None) == User.Role.ADMIN:
+                return UserUpdateAdminSerializer
+                #login is moderator
+            if getattr(sender, 'role', None) == User.Role.MODERATOR:
+                return UserUpdateModeratorSerializer
+            #fallback        
+            return UserUpdateProfileSerializer
 
-            #if someone editing their own profile,
-            return UpdateUserSerializers
+        if self.action == 'password':
+            return UserUpdatePasswordSerializer
+        
+        if self.action == 'retrieve':
+            sender = getattr(self.request, 'user', None)
+            if not sender or not sender.is_authenticated:
+                return UserPublicDataSerializer
 
+            try:
+                target = self.get_object()
+            except Exception:
+                return UserProfileSerializer
+            
+            #check if the the user is trying to view their own profile
+            if target == sender:
+                return UserProfileSerializer
+            
+            #Admin / Staff view another user
+            if getattr(sender, 'role', None) == User.Role.ADMIN:
+                return UserDataAdminSerializer
+                #login is moderator
+            if getattr(sender, 'role', None) == User.Role.MODERATOR:
+                return UserDataModeratorSerializer
+            #fallback        
+            return UserPublicDataSerializer
+
+        # if self.action == 'destroy':
+        #     return [permissions.IsAuthenticated(), IsAdmin()]
+        return UserPublicDataSerializer
+    def get_permissions(self):
+        if self.action == 'create':
+            return [permissions.AllowAny()]
+
+        if self.action in ['update', 'partial_update']:
+            return[permissions.IsAuthenticated(),IsUserOrBoss()]
 
         if self.action == 'retrieve':
-            requester = self.request.user
-            target = self.get_object()
-            if requester.is_authenticated and (target == requester or requester.is_staff or requester.role in [User.Role.ADMIN, User.Role.MODERATOR]):
-                #for staff
-                return UserSerializers
-            #for user
-            return PublicUserSerializers
-        #for all other actions (list, retrieve).
-        return UserSerializers
+            return[permissions.AllowAny()]
+
+        if self.action == 'destroy':
+            return[permissions.IsAuthenticated(), IsAdmin()]
+
+        if self.action == 'me':
+            return [permissions.IsAuthenticated()]
+        
+        if self.action == 'profileImage':
+            return [permissions.IsAuthenticated()]
+
+        if self.action == 'password':
+            return [permissions.IsAuthenticated()]
+        
+        if self.action in ['profile','threads']:
+            return [permissions.AllowAny()]
+    
+        return [IsAdmin()]
     
 
-    # logic gap
-    def get_permissions(self):
-        #create user
-        if self.action == 'create':
-            return [permissions.AllowAny()]
-
-        #update - delete 
-        if self.action in ['update', 'partial_update']:
-            return [permissions.IsAuthenticated(), IsSelfOrModeratorOrAdmin()]
-
-        if self.action in ['destroy']:
-            return [IsAdmin()]
-        
-        #Any all user can view user details without login.
-        if self.action == 'retrieve':
-            return [permissions.AllowAny()]
-
-        #action accessible to Moderators or Admins.
-        if self.action == 'suspend':
-            return [IsModeratorOrAdmin()]
-        
-        return [IsAdmin()]
-
-    #Self Profile Endpoint
+    #GET / PATCH / PUT /api/users/profile/
     @action(detail=False, methods=['get', 'patch'], permission_classes=[permissions.IsAuthenticated])
-    #GET /users/me/
     def me(self, request):
-        user = request.user
+        user = request.user 
         if request.method == 'GET':
-            return Response(UserSerializers(user, context={'request':request}).data)
-        serializer = UpdateUserSerializers(user, data=request.data, partial=True, context={'request': request})
+            return Response(UserProfileSerializer(user, context={'request':request}).data)
+        serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(UserSerializers(user, context={'request': request}).data)
+        return Response(UserProfileSerializer(user, context={'request': request}).data)
+
+
+    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    def profile(self, request, pk=None):
+        """GET /api/users/{id}/profile/ — view any user's public profile"""
+        user = self.get_object()   # now valid, since detail=True provides pk
+        return Response(UserPublicDataSerializer(user, context={'request': request}).data)
+           
+
+    #https/user/password
+    @action(detail=True, methods=['patch', 'put'],  permission_classes=[permissions.IsAuthenticated, IsUserOrBoss])
+    def password(self, request, pk=None):
+        user = self.get_object()
+        serializer = UserUpdatePasswordSerializer(
+            user,
+            data = request.data,
+            partial = True,
+            context = {'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            status=status.HTTP_200_OK
+        )
+
+    #https/user/:id/profile_image
+    @action(detail=True, methods=['post'], 
+        permission_classes=[permissions.IsAuthenticated, IsUserOrBoss],
+        parser_classes=[MultiPartParser, FormParser])
+    def profileImage(self, request, pk=None):
+        user = self.get_object()
+        serializer = UserUpdateImageSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        uploaded_file = serializer.validated_data['profile_image']
+        image = Image.objects.create(
+            file = uploaded_file,
+            upload_by = request.user,
+            alt_text = f"{user.username}'s profile image"
+        )
+        oldImage = user.profile_image
+        user.profile_image = image
+        user.save(update_fields=['profile_image'])
+        if oldImage:
+            oldImage.delete()
+        return Response(
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    def threads(self, request, pk=None):
+        target_user = self.get_object()
+        threads = (
+            Thread.objects
+            .filter(user=target_user)
+            .select_related('status')
+            .prefetch_related('images')
+            .annotate(reply_count=Count('replies', distinct=True))
+        )
+
+        category_id = request.query_params.get('category')
+        if category_id:
+            threads = threads.filter(category_id=category_id)
+
+        ordering = request.query_params.get('ordering', '-created_at')
+        if ordering.lstrip('-') in ['created_at', 'view_count', 'like_count', 'title']:
+            threads = threads.order_by(ordering)
+
+        page = self.paginate_queryset(threads)
+        if page is not None:
+            serializer = ListingThreadSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ListingThreadSerializer(threads, many=True, context={'request': request})
+        return Response(serializer.data)
+    
 

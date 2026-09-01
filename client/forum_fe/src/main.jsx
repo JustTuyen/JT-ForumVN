@@ -19,7 +19,12 @@ import Profile from './view/user/profile/ProfilePage.jsx'
 import DashBoard from './view/admin/DashBoardPage.jsx';
 import ThreadManager from './view/admin/ThreadManager.jsx';
 import User from './view/user/UserPage.jsx';
-import AboutUs from './view/user/AboutPage.jsx';
+import History from './view/user/profile/HistoryPage.jsx';
+import About from './view/user/AboutPage.jsx'
+import Inquiry from './view/user/InquiryPage.jsx';
+//
+import { AuthProvider } from './auth/AuthContext.jsx';
+//
 const router = createBrowserRouter([
   //user
   {path:'/', element:<Home/>},
@@ -27,11 +32,13 @@ const router = createBrowserRouter([
   {path:'*', element:<NotFound/>},
   {path:'/login', element:<Login/>},
   {path:'/register', element:<Register/>},
-  {path:'/thread', element:<Thread/>},
+  {path:'/threads/:id', element:<Thread/>},
   {path:'/search', element:<Search/>},
   {path:'/profile', element:<Profile/>},
-  {path:'/user', element:<User/>},
-  {path:'/about', element:<AboutUs/>},
+  {path:'/user/:id', element:<User/>},
+  {path:'/history', element:<History/>},
+  {path:'/about', element:<About/>},
+  {path:'/inquiry', element:<Inquiry/>},
   // admin
   {path:'/dashboard', element:<DashBoard/>},
   {path:'/dashboard/thread', element:<ThreadManager/>},
@@ -39,7 +46,9 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    {/* <App /> */}
-    <RouterProvider router={router}/>
+    <AuthProvider>
+      {/* <App /> */}
+      <RouterProvider router={router}/>
+    </AuthProvider>
   </StrictMode>,
 )

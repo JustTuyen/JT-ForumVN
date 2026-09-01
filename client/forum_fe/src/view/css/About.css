@@ -1,0 +1,73 @@
+.About-img{
+    height: 25rem;
+    width: 20rem;
+    box-shadow: -60px -16px #DE80E9;
+    border-radius: 16px;
+}
+
+.about-text{
+    text-shadow: 2px 2px rgb(0 0 255 / 0.2);
+
+}
+
+#about-btn{
+    background-color: #9400D3;
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    box-shadow: 12px 12px 2px 1px rgb(0 0 255 / 0.2);
+}
+
+#about-email{
+    background-color: #9400D3;
+    color: white;
+    width: 35%;
+    font-weight: bold;
+    box-shadow: 10px 5px 5px rgb(0 0 255 / 0.2);
+}
+
+#about-cv{
+    background-color: transparent;
+    border: 1px solid #DE80E9;
+    color: #DE80E9;
+    width: 35%;
+    font-weight: bold;
+    box-shadow: 10px 5px 5px rgb(0 0 255 / 0.2);
+}
+
+.title{
+    font-size: 24px;
+    font-weight: bold;
+    align-items: center;
+    color: #9400D4;
+}
+
+li p{
+    font-size: 18px;
+}
+
+li{
+    padding: 5px;
+    align-items: center;
+}
+
+.box {
+    position: relative;
+    border-radius: 16px;
+    box-shadow: 10px 5px 5px rgb(0 0 255 / 0.2);
+    font-weight: thin;
+    font-size: 18px;
+    overflow: hidden;
+    cursor: progress;
+}
+
+.box::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url('../../assets/aboutbg.jpg');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.09;
+    z-index: 0;
+}

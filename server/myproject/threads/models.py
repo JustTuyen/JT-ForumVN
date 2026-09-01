@@ -90,7 +90,7 @@ class Thread(models.Model):
             subscription = (
                 self.user.subscriptions
                 .filter(
-                    status__status_name="active",
+                    status__status_name="On Going",
                     expire_at__gt=timezone.now(),
                 )
                 .select_related("plan")
@@ -162,6 +162,7 @@ class Reply(models.Model):
 #7 image
 class Image(models.Model):
     file = models.ImageField(upload_to='images/%Y/%m/%d/')
+    alt_text=models.CharField(blank=True)
     thread = models.ForeignKey(
         Thread, 
         on_delete=models.CASCADE, 
@@ -191,6 +192,10 @@ class Image(models.Model):
                 fields=['thread'],
                 condition=models.Q(is_thumbnail=True),
                 name='unique_thumbnail_per_thread'
+            ),
+            models.CheckConstraint(
+                condition=~(models.Q(thread__isnull=False) & models.Q(reply__isnull=False)),
+                name='image_not_both_thread_and_reply'
             ),
         ]
         indexes = [

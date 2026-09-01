@@ -28,11 +28,28 @@
     font-weight: light;
     text-transform: none;
 }
+
+#nav-select select{
+    background-color: white;
+    padding: 5px 10px;
+    color: #9400D3;
+    border-radius: 13px;
+    font-weight: light;
+    text-transform: none;
+}
 #nav-btn:active{
     background-color: #9400D3;
     color: white;
 }
 
+.thumbnail-img{
+    height: 7rem;
+    width: 7rem;
+    border: #9400D3 1px solid;
+    border-radius: 16px;
+    object-fit: scale-down;
+    object-position: center;
+}
 
 .card-title p{
     color: black;

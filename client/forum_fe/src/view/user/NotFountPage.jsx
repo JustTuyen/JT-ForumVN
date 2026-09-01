@@ -1,5 +1,5 @@
 import Footer from "../../component/Footer";
-import React from "react";
+//import React from "react";
 import Navbar from "../../component/Navbar";
 import SideButton from "../../component/SideButton";
 import { Button } from "@mui/material";
