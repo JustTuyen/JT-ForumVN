@@ -15,6 +15,11 @@ class CategorySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at', 'updated_at']
 
+    def validate_status(self, value):
+        if value.status_type != 'Category':
+            raise serializers.ValidationError("This status is not valid for categories.")
+        return value
+
 class ReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Reply
@@ -31,9 +36,15 @@ class ReplySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("This user account is not active.")
         return value
 
+    def validate_status(self, value):
+        if value.status_type != 'Reply':
+            raise serializers.ValidationError("This status is not valid for replies.")
+        return value
+
     def validate_thread(self, value):
         if not value.status or value.status.status_name != 'Active':
             raise serializers.ValidationError("This thread is not active.")
+        return value
         
     def validate(self, attrs):
         parent_reply = attrs.get('parent_reply')
@@ -101,6 +112,11 @@ class CreateThreadSerializer(serializers.ModelSerializer):
     def validate_category(self, value):
         if not value.status or value.status.status_name != 'Active':
             raise serializers.ValidationError("This category is not active.")
+        return value
+
+    def validate_status(self, value):
+        if value.status_type != 'Thread':
+            raise serializers.ValidationError("This status is not valid for threads.")
         return value
     
     def validate_images(self, value):

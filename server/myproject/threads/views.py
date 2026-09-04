@@ -31,16 +31,48 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 # Create your views here.
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.select_related('status').all()
-    serializer_class = CategorySerializer
-    permission_classes = [permissions.AllowAny]
-
-#checking user role - permission
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         u = request.user
         return u.is_authenticated and (u.is_staff or u.role == User.Role.ADMIN)
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.select_related('status').all()
+    serializer_class = CategorySerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update','searcher']:
+            return [IsAdmin()] 
+
+        if self.action in ['retrieve']:
+            return [permissions.AllowAny()]
+        return [IsAdmin()]
+
+    @action(detail=False, methods=['get'])
+    def searcher(self, request):
+        keyword = request.query_params.get('q', '').strip()
+        categories = self.get_queryset().select_related('status')
+
+        if keyword:
+            categories = categories.filter(Q(title__icontains=keyword) | Q(description__icontains=keyword))
+
+        status_id = request.query_params.get('status')
+        if status_id and status_id != 'all':
+            categories = categories.filter(status_id=status_id)
+
+        allowed_ordering = ['title', 'created_at', 'updated_at']
+        ordering = request.query_params.get('ordering', '-created_at')
+        categories = categories.order_by(ordering if ordering.lstrip('-') in allowed_ordering else '-created_at')
+
+        page = self.paginate_queryset(categories)
+        if page is not None:
+            serializer = CategorySerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = CategorySerializer(categories, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+
+
+#checking user role - permission
 
 class IsModeratorOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):

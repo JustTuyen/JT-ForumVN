@@ -42,8 +42,8 @@ const router = createBrowserRouter([
   {path:'/inquiry', element:<Inquiry/>},
   // admin
   {path:'/dashboard', element:<DashBoard/>},
-  {path:'/threads', element:<ThreadManager/>},
-  {path:'/categories', element:<CategoryManager/>},
+  {path:'/dashboard/thread', element:<ThreadManager/>},
+  {path:'/dashboard/category', element:<CategoryManager/>},
 ])
 
 createRoot(document.getElementById('root')).render(

@@ -118,6 +118,7 @@ class Reply(models.Model):
     like_count = models.PositiveIntegerField(default=0)
     point_reward = models.IntegerField(default=5)
 
+    #should add index for individual reply in thread sections, display thread's id is not visual great
     #when reply on a reply
     parent_reply = models.ForeignKey(
         #replying to another reply within the thread
@@ -160,6 +161,7 @@ class Reply(models.Model):
         return f"{self.name}"
 
 #7 image
+#should add height and width dimension for better display
 class Image(models.Model):
     file = models.ImageField(upload_to='images/%Y/%m/%d/')
     alt_text=models.CharField(blank=True)

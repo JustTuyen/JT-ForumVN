@@ -9,6 +9,7 @@ import AddReactionIcon from '@mui/icons-material/AddReaction';
 import CloseIcon from '@mui/icons-material/Close';
 import CollectionsBookmarkIcon from '@mui/icons-material/CollectionsBookmark';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
+import { NavLink } from 'react-router';
 const Sidebar = ({ isOpen, setIsOpen }) => {
     
 const [activeDropdown, setActiveDropdown] = useState('');
@@ -17,31 +18,47 @@ const navItems = [
     { 
         title: 'Home', 
         icon: HouseIcon, 
-        hasDropdown: false },
+        hasDropdown: false,
+        path: '/dashboard'
+    },
     { 
       title: 'Thread', 
       icon: CollectionsBookmarkIcon,
       hasDropdown: true,
-      dropdownItems: ['Category Manager', 'Thread Manager']
+      dropdownItems: [
+            {label:'Category Manager', path: '/dashboard/category'}, 
+            {label:'Thread Manager', path: '/dashboard/thread'}
+        ]
     },
 
     { 
       title: 'User', 
       icon: PeopleAltIcon,
       hasDropdown: true,
-      dropdownItems: ['User Manager', 'Moderator Manager']
+      dropdownItems: [
+        {label: 'User Manager', path: '/dashboard/user'},
+        {label: 'Moderator Manager', path: '/dashboard/moderator'}
+      ]
     },
     { 
       title: 'Subscription', 
       icon: AddReactionIcon,
       hasDropdown: true,
-      dropdownItems: ['Rank Manager', 'Plan Manager']
+      dropdownItems: [
+        {label: 'Rank Manager', path: '/dashboard/rank'},
+        {label: 'Plan Manager', path: '/dashboard/plan'}
+      ]
     },
     { 
       title: 'Messages', 
       icon: QuestionAnswerIcon,
       hasDropdown: true,
-      dropdownItems: ['Inbox', 'Sent', 'Drafts', 'Archived']
+      dropdownItems: [
+        {label: 'Inbox', path: '/dashboard/inbox'},
+        {label: 'Sent', path: '/dashboard/sent'},
+        {label: 'Drafts', path: '/dashboard/drafts'},
+        {label: 'Archived', path: '/dashboard/archived'}
+      ]
     },
     { 
         title: 'Analytics', 
@@ -51,7 +68,11 @@ const navItems = [
       title: 'Settings',
       icon: SettingsIcon,
       hasDropdown: true,
-      dropdownItems: ['Status Manager', 'Security', 'Notifications']
+      dropdownItems: [
+        {label: 'Status Manager', path: '/dashboard/status'},
+        {label: 'Security', path: '/dashboard/security'},
+        {label: 'Notifications', path: '/dashboard/notifications'}
+      ]
     }
 ];
 
@@ -107,18 +128,21 @@ return (
                 </div>
             
                 {item.hasDropdown && isOpen && activeDropdown === item.title && (
-                <div className="bg-[#DE80E9] overflow-hidden transition-all duration-200">
+                    <div className="bg-[#DE80E9] overflow-hidden transition-all duration-200">
                     {item.dropdownItems.map((dropdownItem) => (
-                    <div
-                        key={dropdownItem}
-                        className="px-11 py-2 hover:bg-[#f1f1f1] cursor-pointer text-sm"
-                    >
-                        {dropdownItem}
-                    </div>
+                        <NavLink
+                            key={dropdownItem.path}
+                            to={dropdownItem.path}
+                            className={({ isActive }) =>
+                                `block px-11 py-2 hover:bg-[#f1f1f1] cursor-pointer text-sm ${isActive ? 'bg-[#f1f1f1] font-semibold' : ''}`
+                            }
+                        >
+                            {dropdownItem.label}
+                        </NavLink>
                     ))}
                 </div>
-                )}
-            </div>
+            )}
+        </div>
         ))}
         </nav>
     </div>

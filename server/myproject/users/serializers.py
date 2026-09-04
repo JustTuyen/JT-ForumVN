@@ -36,6 +36,11 @@ class PLanSerializers(serializers.ModelSerializer):
         if obj.thread_duration:
             return round(obj.thread_duration.total_seconds() / 3600, 2)
         return None
+    
+    def validate_status(self, value):
+        if value.status_type != 'Plan':
+            raise serializers.ValidationError("This status is not valid for plans.")
+        return value
 class SubscriptionSerializers(serializers.ModelSerializer):
     class Meta:
         model = Subscription
@@ -58,7 +63,11 @@ class SubscriptionSerializers(serializers.ModelSerializer):
         if not value.status or value.status.status_name != 'Active':
             raise serializers.ValidationError("This subscription plan is not currently available or active.")
         return value
-    
+
+    def validate_status(self, value):
+        if value.status_type != 'Subscription':
+            raise serializers.ValidationError("This status is not valid for subscriptions.")
+        return value
 class UserSerializers(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     class Meta:
@@ -137,6 +146,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
         return user
+
+    def validate_status(self, value):
+        if value.status_type != 'User':
+            raise serializers.ValidationError("This status is not valid for users.")
+        return value
 
 #data display for admins and moderator
 #view admin

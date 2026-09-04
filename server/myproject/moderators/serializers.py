@@ -119,6 +119,11 @@ class CreateReportSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("This user account is not active.")
         return value
 
+    def validate_status(self, value):
+        if value.status_type != 'Report':
+            raise serializers.ValidationError("This status is not valid for reports.")
+        return value
+
 class ReportListingSerializer(serializers.ModelSerializer):
     status_name = serializers.ReadOnlyField(source='status.status_name')
     content_type_name = serializers.CharField(source='content_type.model', read_only=True)
