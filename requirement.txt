@@ -1,3 +1,4 @@
 Backend = Python Django
 Front-end = React.js
 service = Amazon S3
+DB = Postgresql 
