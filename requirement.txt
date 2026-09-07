@@ -2,3 +2,4 @@ Backend = Python Django
 Front-end = React.js
 service = Amazon S3
 DB = Postgresql 
+DB schema = https://drawsql.app/teams/justtuyen/diagrams/forums
